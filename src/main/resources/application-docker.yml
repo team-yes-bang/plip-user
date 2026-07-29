@@ -1,0 +1,17 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    # Compose 서비스명 `mysql` (호스트 localhost 가 아님)
+    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:plip_template}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+eureka:
+  client:
+    enabled: true # Docker 로컬 기본 비활성. 연동 시 true + Eureka 서비스 추가
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
