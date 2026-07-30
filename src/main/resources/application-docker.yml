@@ -10,6 +10,10 @@ spring:
     show-sql: true
 
 eureka:
+  instance:
+    hostname: user
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:docker:${server.port}
   client:
     enabled: true
     service-url:
