@@ -1,11 +1,9 @@
 server:
-  # 팀 할당 포트로 기본값 변경. 충돌 시 SERVER_PORT env로 오버라이드 (YAML보다 우선)
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8082}
 
 spring:
   datasource:
-    # Compose 서비스명 `mysql` (앱 컨테이너 내부). 호스트에서 DB 접속 시 MYSQL_PORT(3308) 사용
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:plip_user}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3308/plip_user?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,10 +11,9 @@ spring:
 
 eureka:
   instance:
-    # Docker Desktop 브리지 IP(172.x / host.docker.internal) 대신 localhost로 등록
     prefer-ip-address: false
     hostname: localhost
   client:
-    enabled: false # 로컬 기본 비활성. Eureka 연동 시 true로 변경
+    enabled: false
     service-url:
       defaultZone: http://localhost:8761/eureka/
