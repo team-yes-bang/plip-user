@@ -36,5 +36,18 @@ out/
 ### VS Code ###
 .vscode/
 
+### Cursor (로컬 AI 규칙 — Git 추적 제외) ###
+.cursor/
+
 ### Local secrets ###
 .env
+.env.*
+!.env.example
+
+### Logs ###
+logs/
+*.log
+
+### OS ###
+.DS_Store
+Thumbs.db

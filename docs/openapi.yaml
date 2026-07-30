@@ -1,7 +1,8 @@
 openapi: 3.1.0
 info:
-  title: OpenAPI definition
-  version: v0
+  title: PLIP User Service API
+  description: 유저 서비스 API 명세서
+  version: v1.0.0
 servers:
 - url: http://localhost
   description: Generated server url
