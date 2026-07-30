@@ -7,7 +7,7 @@
 | --- | --- |
 | [Dockerfile](Dockerfile) | Spring Boot 앱 이미지 빌드 |
 | [docker-compose.yml](docker-compose.yml) | `app` + `mysql` 오케스트레이션 |
-| [application-docker.yml](src/main/resources/application-docker.yml) | Docker 프로필 설정 (DB 호스트 = `mysql`) |
+| [application-local.yml](src/main/resources/application-local.yml) | `local` 프로필 — Compose 앱 컨테이너 (DB 호스트 = `mysql`) |
 | [.env.example](.env.example) | Compose/앱 공통 환경변수 예시 |
 
 ---
@@ -30,13 +30,13 @@ cp .env.example .env
 ```text
 ┌─────────────────┐     jdbc:mysql://mysql:3306/...     ┌─────────────────┐
 │  app (Spring)   │ ──────────────────────────────────► │  mysql (8.4)    │
-│  profile=docker │                                     │  volume: data   │
+│  profile=local  │                                     │  volume: data   │
 │  :8080          │                                     │  (내부 3306)    │
 └─────────────────┘                                     └─────────────────┘
 ```
 
 - 앱은 **호스트 JDK가 아니라** 컨테이너에서 실행됩니다.
-- DB 주소는 `localhost`가 아니라 Compose **서비스명 `mysql`** 입니다. (`application-docker.yml`)
+- DB 주소는 `localhost`가 아니라 Compose **서비스명 `mysql`** 입니다. (`application-local.yml`)
 - MySQL은 호스트 `3308:3306`으로 매핑됩니다. (PC의 3306과 충돌 방지)
 - Eureka는 Docker 로컬에서 기본 **비활성**입니다. 필요 시 compose에 Eureka 서비스를 추가하고 `eureka.client.enabled=true`로 바꾸면 됩니다.
 
@@ -45,7 +45,8 @@ cp .env.example .env
 `docker-compose.yml`에 Redis, 두 번째 DB 등을 **서비스 블록으로 추가/삭제**하면 됩니다.
 
 ```bash
-docker compose up -d          # 변경 반영
+docker compose up -d          # 이미지 재빌드 없음 — 코드 변경 반영 안 됨
+docker compose up -d --build  # 소스 변경 후 이미지 재빌드 + 기동 (필수)
 docker compose down           # 중지 (볼륨 유지)
 docker compose down -v        # 중지 + DB 데이터 볼륨 삭제
 ```
@@ -57,7 +58,10 @@ docker compose down -v        # 중지 + DB 데이터 볼륨 삭제
 프로젝트 **루트**에서:
 
 ```bash
-# 빌드 + 기동 (백그라운드)
+# 개발용 (권장) — src 변경 시 이미지 자동 재빌드·재기동
+docker compose up --watch
+
+# 백그라운드 1회 기동 (코드 변경 자동 반영 없음)
 docker compose up -d --build
 
 # 로그
@@ -68,6 +72,13 @@ docker compose down
 ```
 
 첫 빌드는 Gradle 의존성 때문에 시간이 걸릴 수 있습니다.
+
+`docker-compose.yml`의 `develop.watch`가 `src/main`, `build.gradle` 변경을 감지해 앱 이미지를 재빌드합니다.  
+**개발 중에는 `docker compose up --watch`만 실행하면** `down` / `up --build`를 매번 치지 않아도 됩니다.
+
+> **코드 변경이 반영되지 않을 때**  
+> `docker compose down` 후 `up`만 하면 **이전 JAR 이미지**가 그대로 실행됩니다.  
+> Watch 없이 수동 기동할 때는 `docker compose up -d --build`로 재빌드하세요.
 
 ### 접속
 
@@ -90,7 +101,7 @@ START.md에서 서비스명을 바꾼 뒤 Docker 쪽도 맞춥니다.
 | 볼륨 이름 | `docker-compose.yml` → `volumes` | `plip_agit_mysql_data` |
 | 앱 포트 | `.env` → `SERVER_PORT` | 팀 할당 포트 (예: 8082) |
 
-`application-docker.yml`의 DB URL은 `${MYSQL_DATABASE:...}`를 쓰므로, 보통 `.env`만 바꿔도 됩니다.
+`application-local.yml`의 DB URL은 `${MYSQL_DATABASE:...}`를 쓰므로, 보통 `.env`만 바꿔도 됩니다.
 
 ---
 
@@ -113,12 +124,10 @@ OpenAPI 파일(`docs/openapi.yaml`) 갱신은 컨테이너와 별개로, 호스�
 
 ## 6. 호스트에서 앱만 띄우는 경우 (참고)
 
-Docker를 쓰지 않을 때는 기존처럼:
+이 프로젝트는 **Docker Compose로 앱+MySQL을 함께 기동**하는 것을 기본 로컬 방식으로 합니다.  
+`application-local.yml`은 Compose 앱 컨테이너용 설정이며, `application.yaml`의 `spring.profiles.active: local`과 함께 사용됩니다.
 
-- 프로필: `local` (`application-local.yml`, DB = `localhost`)
-- MySQL을 PC에 설치하거나, **MySQL 컨테이너만** 띄운 뒤 앱은 IDE/`bootRun`
-
-전부 Docker가 기본 로컬 방식이고, `local` 프로필은 IDE 디버깅용으로 남겨 둔 형태입니다.
+호스트에서 IDE/`bootRun`으로만 앱을 띄우려면 DB URL을 `localhost:${MYSQL_PORT}`로 바꾸고 MySQL 컨테이너만 별도 실행해야 합니다.
 
 ---
 

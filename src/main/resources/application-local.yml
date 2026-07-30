@@ -4,7 +4,8 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3308/plip_template?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    # Compose 서비스명 `mysql` (앱 컨테이너 내부). 호스트에서 DB 접속 시 MYSQL_PORT(3308) 사용
+    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:plip_user}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
   jpa:
     hibernate:
       ddl-auto: update
@@ -16,6 +17,6 @@ eureka:
     prefer-ip-address: false
     hostname: localhost
   client:
-    enabled: true # 로컬 기본 비활성. Eureka 연동 시 true로 변경
+    enabled: false # 로컬 기본 비활성. Eureka 연동 시 true로 변경
     service-url:
       defaultZone: http://localhost:8761/eureka/
