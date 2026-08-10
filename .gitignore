@@ -44,6 +44,10 @@ out/
 .env.*
 !.env.example
 
+### Application resources (로컬·통합 테스트 환경별 YML — Git 추적 제외) ###
+src/main/resources/
+
+
 ### Logs ###
 logs/
 *.log
