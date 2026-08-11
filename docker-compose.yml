@@ -81,6 +81,8 @@ services:
       REDIS_PORT: 6379
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: ${JWT_SECRET:-change-me-local-dev-only}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: ${RESEND_FROM_EMAIL:-noreply@plip.app}
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     develop:
