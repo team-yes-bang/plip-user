@@ -1,0 +1,21 @@
+package com.plip.user.adapter.out.persistence.mapper;
+
+import com.plip.user.adapter.out.persistence.entity.UserNotificationSettingEntity;
+import com.plip.user.domain.model.UserNotificationSetting;
+import org.springframework.stereotype.Component;
+
+@Component
+public class UserNotificationSettingEntityMapper {
+
+	public UserNotificationSetting toDomain(UserNotificationSettingEntity entity) {
+		return UserNotificationSetting.of(
+				entity.getId(),
+				entity.getUserId(),
+				entity.isAgitNotifyEnabled(),
+				entity.isDiaryNotifyEnabled(),
+				entity.getDiaryNotifyTime(),
+				entity.getCreatedAt(),
+				entity.getUpdatedAt()
+		);
+	}
+}
