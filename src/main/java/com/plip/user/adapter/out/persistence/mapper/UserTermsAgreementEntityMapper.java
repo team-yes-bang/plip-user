@@ -19,4 +19,14 @@ public class UserTermsAgreementEntityMapper {
 				entity.getUpdatedAt()
 		);
 	}
+
+	public UserTermsAgreementEntity toEntity(UserTermsAgreement agreement) {
+		return UserTermsAgreementEntity.builder()
+				.userId(agreement.getUserId())
+				.termId(agreement.getTermId())
+				.agreed(agreement.isAgreed())
+				.agreedAt(agreement.getAgreedAt())
+				.revokedAt(agreement.getRevokedAt())
+				.build();
+	}
 }

@@ -1,7 +1,8 @@
 -- PLIP User Service DDL (plip_user)
 -- PK 컬럼명: id (BIGINT AUTO_INCREMENT)
 -- 외부 API·JWT 식별자: user_uuid / term_uuid (BINARY(16), UUIDv7)
--- FK·CASCADE는 DB에 두지 않음 — 애플리케이션 레이어에서 참조 무결성·삭제 처리
+-- DB FK 없음 — 애플리케이션 레이어에서 참조 무결성·삭제 처리
+-- 로컬/소셜 이메일 별도 계정 정책: 동일 이메일이라도 auth_type이 다르면 별개 계정
 
 CREATE TABLE users (
     id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -27,8 +28,11 @@ CREATE TABLE user_auths (
     created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at          DATETIME     NULL,
-    -- soft delete 시 NULL 허용 UNIQUE 중복 방지 (활성 행만 유니크 검사)
-    active_email        VARCHAR(255) AS (IF(deleted_at IS NULL, email, NULL)) STORED,
+    -- 로컬 이메일 유니크: 동일 auth_type=LOCAL 내에서만 중복 방지
+    active_local_email  VARCHAR(255) AS (
+        IF(deleted_at IS NULL AND auth_type = 'LOCAL', email, NULL)
+    ) STORED,
+    -- 소셜 키 유니크: provider+provider_user_id 조합
     active_social_key   VARCHAR(320) AS (
         IF(
             deleted_at IS NULL AND provider IS NOT NULL AND provider_user_id IS NOT NULL,
@@ -36,7 +40,7 @@ CREATE TABLE user_auths (
             NULL
         )
     ) STORED,
-    UNIQUE KEY uk_user_auths_active_email (active_email),
+    UNIQUE KEY uk_user_auths_active_local_email (active_local_email),
     UNIQUE KEY uk_user_auths_active_social (active_social_key),
     INDEX idx_user_auths_user_id (user_id)
 );
@@ -44,12 +48,12 @@ CREATE TABLE user_auths (
 CREATE TABLE terms (
     id                BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     term_uuid         BINARY(16)   NOT NULL,
-    title             VARCHAR(100) NOT NULL,
-    content_path      VARCHAR(255) NOT NULL,
-    term_code         VARCHAR(20)  NOT NULL,
-    version           VARCHAR(10)  NOT NULL DEFAULT 'v1.0',
+    title             VARCHAR(255) NOT NULL,
+    content_path      VARCHAR(256) NOT NULL,        -- S3/CDN 약관 파일 경로
+    term_code         VARCHAR(50)  NOT NULL,         -- SERVICE, PRIVACY, MARKETING 등
+    version           VARCHAR(20)  NOT NULL DEFAULT 'v1.0',
     is_required       BOOLEAN      NOT NULL DEFAULT TRUE,
-    status            VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    status            VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, DEPRECATED
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_terms_uuid (term_uuid),
@@ -60,8 +64,8 @@ CREATE TABLE user_terms_agreements (
     id                BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id           BIGINT       NOT NULL,
     term_id           BIGINT       NOT NULL,
-    is_agreed         BOOLEAN      NOT NULL,
-    agreed_at         DATETIME     NOT NULL,
+    is_agreed         BOOLEAN      NOT NULL DEFAULT FALSE,
+    agreed_at         DATETIME     NULL,
     revoked_at        DATETIME     NULL,
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

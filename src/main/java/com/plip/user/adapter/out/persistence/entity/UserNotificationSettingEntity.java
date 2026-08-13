@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,4 +34,13 @@ public class UserNotificationSettingEntity extends BaseEntity {
 
 	@Column(name = "diary_notify_time", nullable = false)
 	private LocalTime diaryNotifyTime;
+
+	@Builder
+	private UserNotificationSettingEntity(Long userId, boolean agitNotifyEnabled,
+			boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		this.userId = userId;
+		this.agitNotifyEnabled = agitNotifyEnabled;
+		this.diaryNotifyEnabled = diaryNotifyEnabled;
+		this.diaryNotifyTime = diaryNotifyTime;
+	}
 }

@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface UserNotificationSettingPersistencePort {
 
 	Optional<UserNotificationSetting> findById(Long id);
+
+	UserNotificationSetting save(UserNotificationSetting setting);
 }

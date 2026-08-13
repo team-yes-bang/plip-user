@@ -6,7 +6,9 @@ import com.plip.user.application.port.in.EmailOtpVerifyResult;
 import com.plip.user.application.port.out.EmailSendPort;
 import com.plip.user.application.port.out.OtpPort;
 import com.plip.user.application.port.out.RateLimitPort;
+import com.plip.user.application.port.out.UserAuthPersistencePort;
 import com.plip.user.application.port.out.VerificationTokenPort;
+import com.plip.user.domain.model.UserAuth;
 import com.plip.user.global.config.OtpProperties;
 import com.plip.user.global.config.RateLimitProperties;
 import com.plip.user.global.exception.BusinessException;
@@ -18,6 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,6 +44,8 @@ class EmailOtpServiceTest {
 	private RateLimitPort rateLimitPort;
 	@Mock
 	private EmailSendPort emailSendPort;
+	@Mock
+	private UserAuthPersistencePort userAuthPersistencePort;
 	@Mock
 	private OtpProperties otpProperties;
 	@Mock
@@ -70,6 +76,8 @@ class EmailOtpServiceTest {
 		@DisplayName("정상 발송 시 OTP 저장 및 이메일 발송")
 		void requestOtp_success() {
 			stubRateLimitNotExceeded();
+			given(userAuthPersistencePort.findByEmailAndAuthType(TEST_EMAIL, "LOCAL"))
+					.willReturn(Optional.empty());
 			given(otpProperties.getLength()).willReturn(6);
 			given(otpProperties.getTtlSeconds()).willReturn(120L);
 
@@ -78,6 +86,25 @@ class EmailOtpServiceTest {
 
 			verify(otpPort).save(eq(TEST_EMAIL), anyString(), eq(120L));
 			verify(emailSendPort).sendOtp(eq(TEST_EMAIL), anyString());
+		}
+
+		@Test
+		@DisplayName("이미 가입된 LOCAL 이메일이면 예외 발생")
+		void requestOtp_emailAlreadyRegistered() {
+			stubRateLimitNotExceeded();
+			given(userAuthPersistencePort.findByEmailAndAuthType(TEST_EMAIL, "LOCAL"))
+					.willReturn(Optional.of(
+							UserAuth.of(1L, 1L, "LOCAL", TEST_EMAIL, "hash", null, null, null, null, null)
+					));
+
+			EmailOtpRequestCommand command = EmailOtpRequestCommand.of(TEST_EMAIL, TEST_IP);
+
+			assertThatThrownBy(() -> emailOtpService.requestOtp(command))
+					.isInstanceOf(BusinessException.class)
+					.extracting(e -> ((BusinessException) e).getErrorCode())
+					.isEqualTo(ErrorCode.EMAIL_ALREADY_REGISTERED);
+
+			verify(emailSendPort, never()).sendOtp(anyString(), anyString());
 		}
 
 		@Test
