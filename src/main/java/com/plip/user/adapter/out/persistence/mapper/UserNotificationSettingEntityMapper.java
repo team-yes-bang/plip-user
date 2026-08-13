@@ -18,4 +18,13 @@ public class UserNotificationSettingEntityMapper {
 				entity.getUpdatedAt()
 		);
 	}
+
+	public UserNotificationSettingEntity toEntity(UserNotificationSetting setting) {
+		return UserNotificationSettingEntity.builder()
+				.userId(setting.getUserId())
+				.agitNotifyEnabled(setting.isAgitNotifyEnabled())
+				.diaryNotifyEnabled(setting.isDiaryNotifyEnabled())
+				.diaryNotifyTime(setting.getDiaryNotifyTime())
+				.build();
+	}
 }

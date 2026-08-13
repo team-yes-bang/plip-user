@@ -8,6 +8,7 @@ import com.plip.user.application.port.in.EmailOtpVerifyUseCase;
 import com.plip.user.application.port.out.EmailSendPort;
 import com.plip.user.application.port.out.OtpPort;
 import com.plip.user.application.port.out.RateLimitPort;
+import com.plip.user.application.port.out.UserAuthPersistencePort;
 import com.plip.user.application.port.out.VerificationTokenPort;
 import com.plip.user.global.config.OtpProperties;
 import com.plip.user.global.config.RateLimitProperties;
@@ -23,10 +24,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmailOtpService implements EmailOtpRequestUseCase, EmailOtpVerifyUseCase {
 
+	private static final String AUTH_TYPE_LOCAL = "LOCAL";
+
 	private final OtpPort otpPort;
 	private final VerificationTokenPort verificationTokenPort;
 	private final RateLimitPort rateLimitPort;
 	private final EmailSendPort emailSendPort;
+	private final UserAuthPersistencePort userAuthPersistencePort;
 	private final OtpProperties otpProperties;
 	private final RateLimitProperties rateLimitProperties;
 
@@ -37,10 +41,17 @@ public class EmailOtpService implements EmailOtpRequestUseCase, EmailOtpVerifyUs
 	@Override
 	public void requestOtp(EmailOtpRequestCommand command) {
 		checkRateLimit(command.getEmail(), command.getClientIp());
+		checkLocalEmailDuplicate(command.getEmail());
 
 		String otpCode = generateOtp(otpProperties.getLength());
 		otpPort.save(command.getEmail(), otpCode, otpProperties.getTtlSeconds());
 		emailSendPort.sendOtp(command.getEmail(), otpCode);
+	}
+
+	private void checkLocalEmailDuplicate(String email) {
+		if (userAuthPersistencePort.findByEmailAndAuthType(email, AUTH_TYPE_LOCAL).isPresent()) {
+			throw new BusinessException(ErrorCode.EMAIL_ALREADY_REGISTERED);
+		}
 	}
 
 	@Override

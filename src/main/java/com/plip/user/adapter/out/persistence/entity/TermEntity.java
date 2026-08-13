@@ -28,16 +28,16 @@ public class TermEntity extends BaseEntity {
 	@Column(name = "term_uuid", nullable = false, length = 16, unique = true)
 	private UUID termUuid;
 
-	@Column(nullable = false, length = 100)
+	@Column(nullable = false, length = 255)
 	private String title;
 
-	@Column(name = "content_path", nullable = false)
+	@Column(name = "content_path", nullable = false, length = 256)
 	private String contentPath;
 
-	@Column(name = "term_code", nullable = false, length = 20)
+	@Column(name = "term_code", nullable = false, length = 50)
 	private String termCode;
 
-	@Column(nullable = false, length = 10)
+	@Column(nullable = false, length = 20)
 	private String version;
 
 	@Column(name = "is_required", nullable = false)

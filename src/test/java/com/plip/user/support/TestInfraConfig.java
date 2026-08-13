@@ -1,7 +1,10 @@
 package com.plip.user.support;
 
 import com.plip.user.application.port.out.EmailSendPort;
+import com.plip.user.application.port.out.EventPublisherPort;
+import com.plip.user.application.port.out.OAuthUserInfoPort;
 import com.plip.user.application.port.out.OtpPort;
+import com.plip.user.application.port.out.PasswordEncoderPort;
 import com.plip.user.application.port.out.RateLimitPort;
 import com.plip.user.application.port.out.VerificationTokenPort;
 import org.mockito.Mockito;
@@ -63,5 +66,33 @@ public class TestInfraConfig {
 	@Primary
 	public EmailSendPort emailSendPort() {
 		return (toEmail, otpCode) -> {};
+	}
+
+	@Bean
+	@Primary
+	public EventPublisherPort eventPublisherPort() {
+		return (topic, key, payload) -> {};
+	}
+
+	@Bean
+	@Primary
+	public PasswordEncoderPort passwordEncoderPort() {
+		return new PasswordEncoderPort() {
+			@Override
+			public String encode(String rawPassword) { return "encoded_" + rawPassword; }
+
+			@Override
+			public boolean matches(String rawPassword, String encodedPassword) {
+				return encodedPassword.equals("encoded_" + rawPassword);
+			}
+		};
+	}
+
+	@Bean
+	@Primary
+	public OAuthUserInfoPort oAuthUserInfoPort() {
+		return (provider, accessToken) -> new OAuthUserInfoPort.OAuthUserInfo(
+				provider, "test-provider-id", "social@example.com", "SocialUser", null
+		);
 	}
 }

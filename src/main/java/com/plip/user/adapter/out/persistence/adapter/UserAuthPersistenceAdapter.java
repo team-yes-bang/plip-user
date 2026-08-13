@@ -20,4 +20,23 @@ public class UserAuthPersistenceAdapter implements UserAuthPersistencePort {
 	public Optional<UserAuth> findById(Long id) {
 		return userAuthRepository.findById(id).map(userAuthEntityMapper::toDomain);
 	}
+
+	@Override
+	public Optional<UserAuth> findByEmailAndAuthType(String email, String authType) {
+		return userAuthRepository.findByEmailAndAuthTypeAndDeletedAtIsNull(email, authType)
+				.map(userAuthEntityMapper::toDomain);
+	}
+
+	@Override
+	public Optional<UserAuth> findByProviderAndProviderUserId(String provider, String providerUserId) {
+		return userAuthRepository.findByProviderAndProviderUserIdAndDeletedAtIsNull(provider, providerUserId)
+				.map(userAuthEntityMapper::toDomain);
+	}
+
+	@Override
+	public UserAuth save(UserAuth userAuth) {
+		return userAuthEntityMapper.toDomain(
+				userAuthRepository.save(userAuthEntityMapper.toEntity(userAuth))
+		);
+	}
 }

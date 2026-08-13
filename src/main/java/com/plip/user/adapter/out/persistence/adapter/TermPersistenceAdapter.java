@@ -7,6 +7,7 @@ import com.plip.user.domain.model.Term;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -19,5 +20,19 @@ public class TermPersistenceAdapter implements TermPersistencePort {
 	@Override
 	public Optional<Term> findById(Long id) {
 		return termRepository.findById(id).map(termEntityMapper::toDomain);
+	}
+
+	@Override
+	public List<Term> findAllActiveRequired() {
+		return termRepository.findByStatusAndRequiredTrue("ACTIVE").stream()
+				.map(termEntityMapper::toDomain)
+				.toList();
+	}
+
+	@Override
+	public List<Term> findAllByIdIn(List<Long> ids) {
+		return termRepository.findByIdIn(ids).stream()
+				.map(termEntityMapper::toDomain)
+				.toList();
 	}
 }

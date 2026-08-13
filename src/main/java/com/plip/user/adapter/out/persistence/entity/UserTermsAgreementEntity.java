@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,9 +32,19 @@ public class UserTermsAgreementEntity extends BaseEntity {
 	@Column(name = "is_agreed", nullable = false)
 	private boolean agreed;
 
-	@Column(name = "agreed_at", nullable = false)
+	@Column(name = "agreed_at")
 	private LocalDateTime agreedAt;
 
 	@Column(name = "revoked_at")
 	private LocalDateTime revokedAt;
+
+	@Builder
+	private UserTermsAgreementEntity(Long userId, Long termId, boolean agreed,
+			LocalDateTime agreedAt, LocalDateTime revokedAt) {
+		this.userId = userId;
+		this.termId = termId;
+		this.agreed = agreed;
+		this.agreedAt = agreedAt;
+		this.revokedAt = revokedAt;
+	}
 }

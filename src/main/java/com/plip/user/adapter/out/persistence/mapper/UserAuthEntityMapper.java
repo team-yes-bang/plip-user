@@ -21,4 +21,15 @@ public class UserAuthEntityMapper {
 				entity.getDeletedAt()
 		);
 	}
+
+	public UserAuthEntity toEntity(UserAuth userAuth) {
+		return UserAuthEntity.builder()
+				.userId(userAuth.getUserId())
+				.authType(userAuth.getAuthType())
+				.email(userAuth.getEmail())
+				.passwordHash(userAuth.getPasswordHash())
+				.provider(userAuth.getProvider())
+				.providerUserId(userAuth.getProviderUserId())
+				.build();
+	}
 }

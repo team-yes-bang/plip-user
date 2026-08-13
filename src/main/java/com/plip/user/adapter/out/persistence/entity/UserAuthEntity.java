@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -37,4 +38,15 @@ public class UserAuthEntity extends SoftDeleteEntity {
 
 	@Column(name = "provider_user_id")
 	private String providerUserId;
+
+	@Builder
+	private UserAuthEntity(Long userId, String authType, String email,
+			String passwordHash, String provider, String providerUserId) {
+		this.userId = userId;
+		this.authType = authType;
+		this.email = email;
+		this.passwordHash = passwordHash;
+		this.provider = provider;
+		this.providerUserId = providerUserId;
+	}
 }
