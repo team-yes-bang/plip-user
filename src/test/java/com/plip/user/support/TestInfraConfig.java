@@ -6,7 +6,9 @@ import com.plip.user.application.port.out.OAuthUserInfoPort;
 import com.plip.user.application.port.out.OtpPort;
 import com.plip.user.application.port.out.PasswordEncoderPort;
 import com.plip.user.application.port.out.RateLimitPort;
+import com.plip.user.application.port.out.RefreshTokenPort;
 import com.plip.user.application.port.out.VerificationTokenPort;
+import com.plip.user.domain.model.OtpPurpose;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,13 +30,13 @@ public class TestInfraConfig {
 	public OtpPort otpPort() {
 		return new OtpPort() {
 			@Override
-			public void save(String email, String otpCode, long ttlSeconds) {}
+			public void save(OtpPurpose purpose, String email, String otpCode, long ttlSeconds) {}
 
 			@Override
-			public String findByEmail(String email) { return null; }
+			public String findByEmail(OtpPurpose purpose, String email) { return null; }
 
 			@Override
-			public void deleteByEmail(String email) {}
+			public void deleteByEmail(OtpPurpose purpose, String email) {}
 		};
 	}
 
@@ -43,13 +45,13 @@ public class TestInfraConfig {
 	public VerificationTokenPort verificationTokenPort() {
 		return new VerificationTokenPort() {
 			@Override
-			public void save(String email, String token, long ttlSeconds) {}
+			public void save(OtpPurpose purpose, String email, String token, long ttlSeconds) {}
 
 			@Override
-			public String findByEmail(String email) { return null; }
+			public String findByEmail(OtpPurpose purpose, String email) { return null; }
 
 			@Override
-			public void deleteByEmail(String email) {}
+			public void deleteByEmail(OtpPurpose purpose, String email) {}
 		};
 	}
 
@@ -72,6 +74,21 @@ public class TestInfraConfig {
 	@Primary
 	public EventPublisherPort eventPublisherPort() {
 		return (topic, key, payload) -> {};
+	}
+
+	@Bean
+	@Primary
+	public RefreshTokenPort refreshTokenPort() {
+		return new RefreshTokenPort() {
+			@Override
+			public void save(String userUuid, String refreshToken, long ttlSeconds) {}
+
+			@Override
+			public String findByUserUuid(String userUuid) { return null; }
+
+			@Override
+			public void deleteByUserUuid(String userUuid) {}
+		};
 	}
 
 	@Bean

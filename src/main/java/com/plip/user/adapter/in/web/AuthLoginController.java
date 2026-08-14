@@ -1,0 +1,85 @@
+package com.plip.user.adapter.in.web;
+
+import com.plip.user.adapter.in.web.dto.ErrorResponse;
+import com.plip.user.adapter.in.web.dto.LocalLoginRequest;
+import com.plip.user.adapter.in.web.dto.LocalLoginResponse;
+import com.plip.user.adapter.in.web.dto.PasswordResetRequest;
+import com.plip.user.adapter.in.web.dto.PasswordResetResponse;
+import com.plip.user.adapter.in.web.dto.TokenReissueRequest;
+import com.plip.user.adapter.in.web.dto.TokenReissueResponse;
+import com.plip.user.application.port.in.LocalLoginCommand;
+import com.plip.user.application.port.in.LocalLoginUseCase;
+import com.plip.user.application.port.in.LoginResult;
+import com.plip.user.application.port.in.PasswordResetCommand;
+import com.plip.user.application.port.in.PasswordResetUseCase;
+import com.plip.user.application.port.in.TokenReissueUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@Tag(name = "Auth - Login & Token", description = "로그인 및 JWT 토큰 API")
+@RestController
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
+public class AuthLoginController {
+
+	private final LocalLoginUseCase localLoginUseCase;
+	private final TokenReissueUseCase tokenReissueUseCase;
+	private final PasswordResetUseCase passwordResetUseCase;
+
+	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "로그인 성공"),
+			@ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/login/local")
+	public ResponseEntity<LocalLoginResponse> loginLocal(@Valid @RequestBody LocalLoginRequest request) {
+		LoginResult result = localLoginUseCase.login(
+				LocalLoginCommand.of(request.getEmail(), request.getPassword()));
+		return ResponseEntity.ok(LocalLoginResponse.of(result.getUserUuid(), result.getTokens()));
+	}
+
+	@Operation(summary = "토큰 재발급", description = "리프레시 토큰으로 액세스·리프레시 토큰을 재발급합니다 (RTR).")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "재발급 성공"),
+			@ApiResponse(responseCode = "401", description = "리프레시 토큰 무효",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/reissue")
+	public ResponseEntity<TokenReissueResponse> reissue(@Valid @RequestBody TokenReissueRequest request) {
+		return ResponseEntity.ok(TokenReissueResponse.of(tokenReissueUseCase.reissue(request.getRefreshToken())));
+	}
+
+	@Operation(summary = "비밀번호 재설정", description = "이메일 OTP 인증 후 비밀번호를 재설정합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "재설정 성공"),
+			@ApiResponse(responseCode = "400", description = "인증 토큰 무효, 기존 비밀번호와 동일",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/password-reset")
+	public ResponseEntity<PasswordResetResponse> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
+		passwordResetUseCase.resetPassword(PasswordResetCommand.of(
+				request.getEmail(),
+				request.getVerificationToken(),
+				request.getNewPassword()
+		));
+		return ResponseEntity.ok(PasswordResetResponse.of());
+	}
+}

@@ -40,13 +40,18 @@ public class UserAuthEntity extends SoftDeleteEntity {
 	private String providerUserId;
 
 	@Builder
-	private UserAuthEntity(Long userId, String authType, String email,
+	private UserAuthEntity(Long id, Long userId, String authType, String email,
 			String passwordHash, String provider, String providerUserId) {
+		this.id = id;
 		this.userId = userId;
 		this.authType = authType;
 		this.email = email;
 		this.passwordHash = passwordHash;
 		this.provider = provider;
 		this.providerUserId = providerUserId;
+	}
+
+	public void updatePasswordHash(String passwordHash) {
+		this.passwordHash = passwordHash;
 	}
 }

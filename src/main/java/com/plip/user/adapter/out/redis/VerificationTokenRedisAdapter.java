@@ -1,6 +1,7 @@
 package com.plip.user.adapter.out.redis;
 
 import com.plip.user.application.port.out.VerificationTokenPort;
+import com.plip.user.domain.model.OtpPurpose;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -16,9 +17,9 @@ public class VerificationTokenRedisAdapter implements VerificationTokenPort {
 	private final StringRedisTemplate redisTemplate;
 
 	@Override
-	public void save(String email, String token, long ttlSeconds) {
+	public void save(OtpPurpose purpose, String email, String token, long ttlSeconds) {
 		redisTemplate.opsForValue().set(
-				KEY_PREFIX + email,
+				buildKey(purpose, email),
 				token,
 				ttlSeconds,
 				TimeUnit.SECONDS
@@ -26,12 +27,16 @@ public class VerificationTokenRedisAdapter implements VerificationTokenPort {
 	}
 
 	@Override
-	public String findByEmail(String email) {
-		return redisTemplate.opsForValue().get(KEY_PREFIX + email);
+	public String findByEmail(OtpPurpose purpose, String email) {
+		return redisTemplate.opsForValue().get(buildKey(purpose, email));
 	}
 
 	@Override
-	public void deleteByEmail(String email) {
-		redisTemplate.delete(KEY_PREFIX + email);
+	public void deleteByEmail(OtpPurpose purpose, String email) {
+		redisTemplate.delete(buildKey(purpose, email));
+	}
+
+	private String buildKey(OtpPurpose purpose, String email) {
+		return KEY_PREFIX + purpose.name().toLowerCase() + ":email:" + email;
 	}
 }

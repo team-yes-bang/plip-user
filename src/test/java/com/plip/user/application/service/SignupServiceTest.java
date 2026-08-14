@@ -1,5 +1,6 @@
 package com.plip.user.application.service;
 
+import com.plip.user.application.port.in.AuthTokenResult;
 import com.plip.user.application.port.in.LocalSignupCommand;
 import com.plip.user.application.port.in.LocalSignupCommand.TermAgreementItem;
 import com.plip.user.application.port.in.SignupResult;
@@ -16,11 +17,13 @@ import com.plip.user.application.port.out.UserTermsAgreementPersistencePort;
 import com.plip.user.application.port.out.UuidGeneratorPort;
 import com.plip.user.application.port.out.VerificationTokenPort;
 import com.plip.user.domain.model.Term;
+import com.plip.user.domain.model.OtpPurpose;
 import com.plip.user.domain.model.User;
 import com.plip.user.domain.model.UserAuth;
 import com.plip.user.domain.model.UuidV7;
 import com.plip.user.global.exception.BusinessException;
 import com.plip.user.global.exception.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,7 +46,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class SignupServiceTest {
@@ -61,12 +66,20 @@ class SignupServiceTest {
 	@Mock private UuidGeneratorPort uuidGeneratorPort;
 	@Mock private OAuthUserInfoPort oAuthUserInfoPort;
 	@Mock private EventPublisherPort eventPublisherPort;
+	@Mock private AuthTokenService authTokenService;
+	@Mock private UserAccountStatusValidator userAccountStatusValidator;
 
 	private static final String EMAIL = "test@example.com";
 	private static final String TOKEN = "valid-token";
 	private static final String PASSWORD = "password123!";
 	private static final String NICKNAME = "테스트유저";
 	private static final UuidV7 USER_UUID = UuidV7.of(UUID.randomUUID());
+	private static final AuthTokenResult TOKEN_RESULT = AuthTokenResult.of("access", "refresh", 3600);
+
+	@BeforeEach
+	void setUpTokens() {
+		lenient().when(authTokenService.issueTokens(any(UuidV7.class))).thenReturn(TOKEN_RESULT);
+	}
 
 	@Nested
 	@DisplayName("이메일 회원가입")
@@ -83,7 +96,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME, termAgreements);
 
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
@@ -110,7 +123,8 @@ class SignupServiceTest {
 			// then
 			assertThat(result.getUserUuid()).isEqualTo(USER_UUID.toString());
 			assertThat(result.isNewUser()).isTrue();
-			then(verificationTokenPort).should().deleteByEmail(EMAIL);
+			assertThat(result.getTokens()).isEqualTo(TOKEN_RESULT);
+			then(verificationTokenPort).should().deleteByEmail(OtpPurpose.SIGNUP, EMAIL);
 			then(eventPublisherPort).should().publish(eq("user.registered"), anyString(), anyString());
 		}
 
@@ -121,7 +135,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(1L, true)));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(null);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(null);
 
 			// when & then
 			assertThatThrownBy(() -> signupService.signup(command))
@@ -137,7 +151,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, "wrong-token", PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(1L, true)));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 
 			// when & then
 			assertThatThrownBy(() -> signupService.signup(command))
@@ -153,7 +167,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME, Collections.emptyList());
 
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(Collections.emptyList());
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
@@ -181,7 +195,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(1L, true)));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.of(
 					UserAuth.of(1L, 1L, "LOCAL", EMAIL, "hash", null, null, null, null, null)
 			));
@@ -201,7 +215,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME, termAgreements);
 
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
@@ -234,7 +248,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(2L, true)));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
@@ -260,7 +274,7 @@ class SignupServiceTest {
 							TermAgreementItem.of(1L, true),
 							TermAgreementItem.of(9L, true)
 					));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
@@ -287,7 +301,7 @@ class SignupServiceTest {
 							TermAgreementItem.of(1L, true),
 							TermAgreementItem.of(999L, true)
 					));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
@@ -310,7 +324,7 @@ class SignupServiceTest {
 			LocalSignupCommand command = LocalSignupCommand.of(
 					EMAIL, TOKEN, PASSWORD, "A",
 					List.of(TermAgreementItem.of(1L, true)));
-			given(verificationTokenPort.findByEmail(EMAIL)).willReturn(TOKEN);
+			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 
 			// when & then
 			assertThatThrownBy(() -> signupService.signup(command))
@@ -343,6 +357,7 @@ class SignupServiceTest {
 
 			User existingUser = User.of(1L, USER_UUID, "기존유저", null, "ACTIVE", null, null, null);
 			given(userPersistencePort.findById(1L)).willReturn(Optional.of(existingUser));
+			org.mockito.Mockito.doNothing().when(userAccountStatusValidator).validateLoginEligible(existingUser);
 
 			// when
 			SignupResult result = signupService.login(command);
@@ -392,6 +407,42 @@ class SignupServiceTest {
 			assertThat(result.getUserUuid()).isEqualTo(USER_UUID.toString());
 			assertThat(result.isNewUser()).isTrue();
 			then(eventPublisherPort).should().publish(eq("user.registered"), anyString(), anyString());
+		}
+
+		@Test
+		@DisplayName("신규 소셜 사용자 - 12자 초과 닉네임은 잘림")
+		void social_login_new_user_nickname_truncated() {
+			List<TermAgreementItem> terms = List.of(TermAgreementItem.of(1L, true));
+			SocialLoginCommand command = SocialLoginCommand.of("kakao", "kakao-token", terms);
+
+			OAuthUserInfo userInfo = new OAuthUserInfo(
+					"kakao", "kakao-id-long", "kakao@example.com",
+					"VeryLongNicknameFromProvider", null);
+			given(oAuthUserInfoPort.getUserInfo("kakao", "kakao-token")).willReturn(userInfo);
+			given(userAuthPersistencePort.findByProviderAndProviderUserId("kakao", "kakao-id-long"))
+					.willReturn(Optional.empty());
+			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+			));
+			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+			));
+			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
+
+			User savedUser = User.of(1L, USER_UUID, "VeryLongNick", null, "ACTIVE", null, null, null);
+			given(userPersistencePort.save(any(User.class))).willReturn(savedUser);
+			given(userAuthPersistencePort.save(any(UserAuth.class))).willReturn(
+					UserAuth.of(1L, 1L, "SOCIAL", "kakao@example.com", null,
+							"kakao", "kakao-id-long", null, null, null)
+			);
+			given(userTermsAgreementPersistencePort.saveAll(anyList())).willReturn(Collections.emptyList());
+			given(userNotificationSettingPersistencePort.save(any())).willReturn(null);
+
+			signupService.login(command);
+
+			org.mockito.ArgumentCaptor<User> userCaptor = org.mockito.ArgumentCaptor.forClass(User.class);
+			verify(userPersistencePort).save(userCaptor.capture());
+			assertThat(userCaptor.getValue().getNickname()).isEqualTo("VeryLongNick");
 		}
 
 		@Test

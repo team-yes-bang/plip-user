@@ -10,6 +10,7 @@ import com.plip.user.application.port.in.EmailOtpRequestUseCase;
 import com.plip.user.application.port.in.EmailOtpVerifyCommand;
 import com.plip.user.application.port.in.EmailOtpVerifyResult;
 import com.plip.user.application.port.in.EmailOtpVerifyUseCase;
+import com.plip.user.domain.model.OtpPurpose;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,7 +35,8 @@ public class AuthEmailController {
 	private final EmailOtpRequestUseCase emailOtpRequestUseCase;
 	private final EmailOtpVerifyUseCase emailOtpVerifyUseCase;
 
-	@Operation(summary = "OTP 발송 요청", description = "입력된 이메일로 6자리 인증번호를 발송합니다.")
+	@Operation(summary = "OTP 발송 요청", description = "입력된 이메일로 6자리 인증번호를 발송합니다. "
+			+ "purpose=SIGNUP은 미가입 이메일만, PASSWORD_RESET은 기존 LOCAL 계정 이메일만 발송합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "인증번호 발송 성공"),
 			@ApiResponse(responseCode = "429", description = "요청 횟수 초과",
@@ -47,7 +49,8 @@ public class AuthEmailController {
 
 		EmailOtpRequestCommand command = EmailOtpRequestCommand.of(
 				request.getEmail(),
-				extractClientIp(httpRequest)
+				extractClientIp(httpRequest),
+				resolvePurpose(request.getPurpose())
 		);
 		emailOtpRequestUseCase.requestOtp(command);
 		return ResponseEntity.ok(EmailOtpRequestResponse.success());
@@ -67,7 +70,8 @@ public class AuthEmailController {
 		EmailOtpVerifyCommand command = EmailOtpVerifyCommand.of(
 				request.getEmail(),
 				request.getOtpCode(),
-				extractClientIp(httpRequest)
+				extractClientIp(httpRequest),
+				resolvePurpose(request.getPurpose())
 		);
 		EmailOtpVerifyResult result = emailOtpVerifyUseCase.verifyOtp(command);
 		return ResponseEntity.ok(EmailOtpVerifyResponse.of(result.getVerificationToken()));
@@ -79,5 +83,9 @@ public class AuthEmailController {
 			return xForwardedFor.split(",")[0].trim();
 		}
 		return request.getRemoteAddr();
+	}
+
+	private OtpPurpose resolvePurpose(OtpPurpose purpose) {
+		return purpose != null ? purpose : OtpPurpose.SIGNUP;
 	}
 }

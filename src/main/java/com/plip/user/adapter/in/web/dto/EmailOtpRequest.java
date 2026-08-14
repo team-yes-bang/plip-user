@@ -1,5 +1,6 @@
 package com.plip.user.adapter.in.web.dto;
 
+import com.plip.user.domain.model.OtpPurpose;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,4 +17,11 @@ public class EmailOtpRequest {
 	@Email(message = "이메일 형식이 올바르지 않습니다.")
 	@Schema(description = "인증 대상 이메일", example = "user@example.com")
 	private String email;
+
+	@Schema(
+			description = "OTP 용도. SIGNUP=회원가입, PASSWORD_RESET=비밀번호 재설정",
+			example = "SIGNUP",
+			defaultValue = "SIGNUP"
+	)
+	private OtpPurpose purpose = OtpPurpose.SIGNUP;
 }

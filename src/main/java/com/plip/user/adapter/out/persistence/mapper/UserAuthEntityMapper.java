@@ -24,6 +24,7 @@ public class UserAuthEntityMapper {
 
 	public UserAuthEntity toEntity(UserAuth userAuth) {
 		return UserAuthEntity.builder()
+				.id(userAuth.getId())
 				.userId(userAuth.getUserId())
 				.authType(userAuth.getAuthType())
 				.email(userAuth.getEmail())
