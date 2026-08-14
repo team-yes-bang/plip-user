@@ -1,10 +1,12 @@
 package com.plip.user.application.port.out;
 
+import com.plip.user.domain.model.OtpPurpose;
+
 public interface OtpPort {
 
-	void save(String email, String otpCode, long ttlSeconds);
+	void save(OtpPurpose purpose, String email, String otpCode, long ttlSeconds);
 
-	String findByEmail(String email);
+	String findByEmail(OtpPurpose purpose, String email);
 
-	void deleteByEmail(String email);
+	void deleteByEmail(OtpPurpose purpose, String email);
 }

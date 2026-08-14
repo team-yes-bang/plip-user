@@ -1,5 +1,6 @@
 package com.plip.user.application.service;
 
+import com.plip.user.application.port.in.AuthTokenResult;
 import com.plip.user.application.port.in.LocalSignupCommand;
 import com.plip.user.application.port.in.LocalSignupCommand.TermAgreementItem;
 import com.plip.user.application.port.in.LocalSignupUseCase;
@@ -17,6 +18,7 @@ import com.plip.user.application.port.out.UserPersistencePort;
 import com.plip.user.application.port.out.UserTermsAgreementPersistencePort;
 import com.plip.user.application.port.out.UuidGeneratorPort;
 import com.plip.user.application.port.out.VerificationTokenPort;
+import com.plip.user.domain.model.OtpPurpose;
 import com.plip.user.domain.model.Term;
 import com.plip.user.domain.model.User;
 import com.plip.user.domain.model.UserAuth;
@@ -59,6 +61,8 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 	private final UuidGeneratorPort uuidGeneratorPort;
 	private final OAuthUserInfoPort oAuthUserInfoPort;
 	private final EventPublisherPort eventPublisherPort;
+	private final AuthTokenService authTokenService;
+	private final UserAccountStatusValidator userAccountStatusValidator;
 
 	@Override
 	@Transactional
@@ -82,11 +86,12 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 		}
 		createDefaultNotificationSetting(savedUser.getId());
 
-		verificationTokenPort.deleteByEmail(command.getEmail());
+		verificationTokenPort.deleteByEmail(OtpPurpose.SIGNUP, command.getEmail());
 
 		publishUserRegisteredEvent(userUuid, command.getEmail(), command.getNickname());
 
-		return SignupResult.of(userUuid.toString());
+		AuthTokenResult tokens = authTokenService.issueTokens(userUuid);
+		return SignupResult.of(userUuid.toString(), tokens);
 	}
 
 	@Override
@@ -102,7 +107,7 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 	}
 
 	private void validateVerificationToken(String email, String token) {
-		String storedToken = verificationTokenPort.findByEmail(email);
+		String storedToken = verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, email);
 		if (storedToken == null || !storedToken.equals(token)) {
 			throw new BusinessException(ErrorCode.VERIFICATION_TOKEN_INVALID);
 		}
@@ -112,6 +117,20 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 		if (nickname == null || nickname.length() < 2 || nickname.length() > 12) {
 			throw new BusinessException(ErrorCode.INVALID_NICKNAME);
 		}
+	}
+
+	private String normalizeSocialNickname(String nickname) {
+		if (nickname == null || nickname.isBlank()) {
+			return "User";
+		}
+		String trimmed = nickname.trim();
+		if (trimmed.length() < 2) {
+			return "User";
+		}
+		if (trimmed.length() > 12) {
+			return trimmed.substring(0, 12);
+		}
+		return trimmed;
 	}
 
 	private void checkLocalEmailDuplicate(String email) {
@@ -195,7 +214,9 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 	private SignupResult handleExistingSocialUser(UserAuth existingAuth) {
 		User user = userPersistencePort.findById(existingAuth.getUserId())
 				.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_ERROR));
-		return SignupResult.of(user.getUserUuid().toString(), false);
+		userAccountStatusValidator.validateLoginEligible(user);
+		AuthTokenResult tokens = authTokenService.issueTokens(user.getUserUuid());
+		return SignupResult.of(user.getUserUuid().toString(), false, tokens);
 	}
 
 	private SignupResult handleNewSocialUser(SocialLoginCommand command, OAuthUserInfo userInfo) {
@@ -212,7 +233,7 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 
 		validateTermsAgreements(agreements);
 
-		String nickname = userInfo.nickname() != null ? userInfo.nickname() : "User";
+		String nickname = normalizeSocialNickname(userInfo.nickname());
 		String profileImagePath = userInfo.profileImageUrl();
 		String email = userInfo.email() != null ? userInfo.email() : "";
 
@@ -227,7 +248,8 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 
 		publishUserRegisteredEvent(userUuid, email, nickname);
 
-		return SignupResult.of(userUuid.toString(), true);
+		AuthTokenResult tokens = authTokenService.issueTokens(userUuid);
+		return SignupResult.of(userUuid.toString(), true, tokens);
 	}
 
 	private void publishUserRegisteredEvent(UuidV7 userUuid, String email, String nickname) {

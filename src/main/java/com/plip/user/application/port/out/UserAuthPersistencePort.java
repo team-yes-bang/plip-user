@@ -12,5 +12,9 @@ public interface UserAuthPersistencePort {
 
 	Optional<UserAuth> findByProviderAndProviderUserId(String provider, String providerUserId);
 
+	Optional<UserAuth> findByUserIdAndAuthType(Long userId, String authType);
+
 	UserAuth save(UserAuth userAuth);
+
+	void updatePasswordHash(Long id, String encodedPassword);
 }

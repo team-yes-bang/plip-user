@@ -28,6 +28,17 @@ public enum ErrorCode {
 	SOCIAL_AUTH_FAILED(HttpStatus.UNAUTHORIZED, "SOCIAL_002", "소셜 인증에 실패했습니다."),
 	SOCIAL_SIGNUP_REQUIRED(HttpStatus.UNPROCESSABLE_ENTITY, "SOCIAL_003", "신규 소셜 사용자입니다. 약관 동의가 필요합니다."),
 
+	// Auth / JWT
+	INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH_001", "이메일 또는 비밀번호가 올바르지 않습니다."),
+	ACCESS_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH_002", "액세스 토큰이 유효하지 않습니다."),
+	REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH_003", "리프레시 토큰이 유효하지 않습니다."),
+	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_004", "사용자를 찾을 수 없습니다."),
+	USER_INACTIVE(HttpStatus.FORBIDDEN, "AUTH_005", "비활성화된 계정입니다."),
+	USER_BLOCKED(HttpStatus.FORBIDDEN, "AUTH_008", "계정 이용이 제한되었습니다."),
+	PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "AUTH_006", "기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다."),
+	LOCAL_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH_007", "로컬 계정이 존재하지 않습니다."),
+	CURRENT_PASSWORD_MISMATCH(HttpStatus.UNAUTHORIZED, "AUTH_009", "현재 비밀번호가 올바르지 않습니다."),
+
 	// Common
 	INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값이 올바르지 않습니다."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다.");

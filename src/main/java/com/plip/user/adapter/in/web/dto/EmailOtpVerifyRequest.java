@@ -1,5 +1,6 @@
 package com.plip.user.adapter.in.web.dto;
 
+import com.plip.user.domain.model.OtpPurpose;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -22,4 +23,11 @@ public class EmailOtpVerifyRequest {
 	@Size(min = 6, max = 6, message = "인증번호는 6자리입니다.")
 	@Schema(description = "6자리 인증번호", example = "123456")
 	private String otpCode;
+
+	@Schema(
+			description = "OTP 용도. otp-request와 동일한 값이어야 합니다.",
+			example = "SIGNUP",
+			defaultValue = "SIGNUP"
+	)
+	private OtpPurpose purpose = OtpPurpose.SIGNUP;
 }

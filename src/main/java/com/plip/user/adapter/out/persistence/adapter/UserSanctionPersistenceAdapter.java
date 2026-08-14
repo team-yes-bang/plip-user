@@ -20,4 +20,11 @@ public class UserSanctionPersistenceAdapter implements UserSanctionPersistencePo
 	public Optional<UserSanction> findById(Long id) {
 		return userSanctionRepository.findById(id).map(userSanctionEntityMapper::toDomain);
 	}
+
+	@Override
+	public Optional<String> findActiveSanctionReasonByUserId(Long userId) {
+		return userSanctionRepository
+				.findFirstByUserIdAndStatusOrderByCreatedAtDesc(userId, "ACTIVE")
+				.map(entity -> entity.getReason());
+	}
 }

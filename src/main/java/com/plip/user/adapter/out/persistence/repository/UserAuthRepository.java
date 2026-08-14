@@ -11,4 +11,6 @@ public interface UserAuthRepository extends JpaRepository<UserAuthEntity, Long> 
 
 	Optional<UserAuthEntity> findByProviderAndProviderUserIdAndDeletedAtIsNull(
 			String provider, String providerUserId);
+
+	Optional<UserAuthEntity> findByUserIdAndAuthTypeAndDeletedAtIsNull(Long userId, String authType);
 }

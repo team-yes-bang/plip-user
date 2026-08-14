@@ -67,13 +67,14 @@ public class AuthSignupController {
 
 		SignupResult result = localSignupUseCase.signup(command);
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(LocalSignupResponse.of(result.getUserUuid()));
+				.body(LocalSignupResponse.of(result.getUserUuid(), result.getTokens()));
 	}
 
 	@Operation(summary = "소셜 로그인",
 			description = "소셜 제공자의 액세스 토큰으로 로그인합니다. "
-					+ "닉네임과 프로필 이미지는 소셜 제공자에서 자동 수집됩니다. "
-					+ "신규 사용자는 약관 동의가 필요합니다.")
+					+ "기존 가입 사용자(provider+providerUserId 일치)는 약관 없이 JWT를 발급하며 응답 newUser=false. "
+					+ "신규 사용자는 약관 동의 후 가입·JWT 발급(newUser=true). "
+					+ "닉네임·프로필 이미지는 신규 가입 시 소셜 제공자에서 자동 수집됩니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "로그인/가입 성공"),
 			@ApiResponse(responseCode = "401", description = "소셜 인증 실패",
@@ -99,6 +100,7 @@ public class AuthSignupController {
 		);
 
 		SignupResult result = socialLoginUseCase.login(command);
-		return ResponseEntity.ok(SocialLoginResponse.of(result.getUserUuid(), result.isNewUser()));
+		return ResponseEntity.ok(SocialLoginResponse.of(
+				result.getUserUuid(), result.isNewUser(), result.getTokens()));
 	}
 }
