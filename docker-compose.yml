@@ -77,8 +77,38 @@ services:
     networks:
       - plip-net
 
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: plip-user-kafka-ui
+    restart: unless-stopped
+    ports:
+      - "${KAFKA_UI_PORT:-8090}:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_started
+    networks:
+      - plip-net
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: plip-user-redisinsight
+    restart: unless-stopped
+    ports:
+      - "${REDISINSIGHT_PORT:-5540}:5540"
+    volumes:
+      - plip_user_redisinsight_data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - plip-net
+
 volumes:
   plip_user_mysql_data:
+  plip_user_redisinsight_data:
 
 networks:
   plip-net:
