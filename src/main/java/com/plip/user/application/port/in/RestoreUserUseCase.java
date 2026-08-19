@@ -2,5 +2,7 @@ package com.plip.user.application.port.in;
 
 public interface RestoreUserUseCase {
 
-	void restore(String userUuid);
+	LoginResult restoreLocal(RestoreLocalCommand command);
+
+	LoginResult restoreSocial(RestoreSocialCommand command);
 }
