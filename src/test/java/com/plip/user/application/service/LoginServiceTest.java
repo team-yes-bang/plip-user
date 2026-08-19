@@ -77,8 +77,8 @@ class LoginServiceTest {
 	}
 
 	@Test
-	@DisplayName("비활성 계정 로그인 실패")
-	void login_inactive_user() {
+	@DisplayName("탈퇴 유예 계정 로그인 실패 - USER_DELETED_RESTORABLE")
+	void login_deleted_user() {
 		UserAuth userAuth = UserAuth.of(
 				1L, 1L, "LOCAL", EMAIL, "encoded_password", null, null, null, null, null);
 		User user = User.of(1L, USER_UUID, "닉네임", null, "DELETED", LocalDateTime.now(), LocalDateTime.now(),
@@ -87,13 +87,13 @@ class LoginServiceTest {
 		given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.of(userAuth));
 		given(passwordEncoderPort.matches(PASSWORD, "encoded_password")).willReturn(true);
 		given(userPersistencePort.findById(1L)).willReturn(Optional.of(user));
-		org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.USER_INACTIVE))
+		org.mockito.Mockito.doThrow(new BusinessException(ErrorCode.USER_DELETED_RESTORABLE))
 				.when(userAccountStatusValidator).validateLoginEligible(user);
 
 		assertThatThrownBy(() -> loginService.login(LocalLoginCommand.of(EMAIL, PASSWORD)))
 				.isInstanceOf(BusinessException.class)
 				.extracting(e -> ((BusinessException) e).getErrorCode())
-				.isEqualTo(ErrorCode.USER_INACTIVE);
+				.isEqualTo(ErrorCode.USER_DELETED_RESTORABLE);
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.plip.user.adapter.out.persistence.entity;
 
+import com.plip.user.domain.model.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,10 +40,18 @@ public class UserEntity extends SoftDeleteEntity {
 	private String status;
 
 	@Builder
-	private UserEntity(UUID userUuid, String nickname, String profileImagePath, String status) {
+	private UserEntity(Long id, UUID userUuid, String nickname, String profileImagePath, String status) {
+		this.id = id;
 		this.userUuid = userUuid;
 		this.nickname = nickname;
 		this.profileImagePath = profileImagePath;
 		this.status = status;
+	}
+
+	public void applyFromDomain(User user) {
+		this.nickname = user.getNickname();
+		this.profileImagePath = user.getProfileImagePath();
+		this.status = user.getStatus();
+		applyDeletedAt(user.getDeletedAt());
 	}
 }

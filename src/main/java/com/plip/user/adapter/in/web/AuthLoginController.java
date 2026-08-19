@@ -3,6 +3,8 @@ package com.plip.user.adapter.in.web;
 import com.plip.user.adapter.in.web.dto.ErrorResponse;
 import com.plip.user.adapter.in.web.dto.LocalLoginRequest;
 import com.plip.user.adapter.in.web.dto.LocalLoginResponse;
+import com.plip.user.adapter.in.web.dto.LogoutRequest;
+import com.plip.user.adapter.in.web.dto.LogoutResponse;
 import com.plip.user.adapter.in.web.dto.PasswordResetRequest;
 import com.plip.user.adapter.in.web.dto.PasswordResetResponse;
 import com.plip.user.adapter.in.web.dto.TokenReissueRequest;
@@ -10,6 +12,7 @@ import com.plip.user.adapter.in.web.dto.TokenReissueResponse;
 import com.plip.user.application.port.in.LocalLoginCommand;
 import com.plip.user.application.port.in.LocalLoginUseCase;
 import com.plip.user.application.port.in.LoginResult;
+import com.plip.user.application.port.in.LogoutUseCase;
 import com.plip.user.application.port.in.PasswordResetCommand;
 import com.plip.user.application.port.in.PasswordResetUseCase;
 import com.plip.user.application.port.in.TokenReissueUseCase;
@@ -36,6 +39,7 @@ public class AuthLoginController {
 	private final LocalLoginUseCase localLoginUseCase;
 	private final TokenReissueUseCase tokenReissueUseCase;
 	private final PasswordResetUseCase passwordResetUseCase;
+	private final LogoutUseCase logoutUseCase;
 
 	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.")
 	@ApiResponses({
@@ -81,5 +85,21 @@ public class AuthLoginController {
 				request.getNewPassword()
 		));
 		return ResponseEntity.ok(PasswordResetResponse.of());
+	}
+
+	@Operation(
+			summary = "로그아웃",
+			description = "리프레시 토큰을 무효화하고 user.logout Kafka 이벤트를 발행합니다. "
+					+ "액세스 토큰은 TTL 만료까지 stateless 유효."
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+			@ApiResponse(responseCode = "401", description = "리프레시 토큰 무효",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/logout")
+	public ResponseEntity<LogoutResponse> logout(@Valid @RequestBody LogoutRequest request) {
+		logoutUseCase.logout(request.getRefreshToken());
+		return ResponseEntity.ok(LogoutResponse.of());
 	}
 }

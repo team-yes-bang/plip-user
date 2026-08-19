@@ -31,6 +31,18 @@ class UserAccountStatusValidatorTest {
 	}
 
 	@Test
+	@DisplayName("DELETED 계정은 USER_DELETED_RESTORABLE")
+	void validateLoginEligible_deleted() {
+		User user = User.of(1L, USER_UUID, "닉네임", null, "DELETED", LocalDateTime.now(), LocalDateTime.now(),
+				LocalDateTime.now());
+
+		assertThatThrownBy(() -> validator.validateLoginEligible(user))
+				.isInstanceOf(BusinessException.class)
+				.extracting(e -> ((BusinessException) e).getErrorCode())
+				.isEqualTo(ErrorCode.USER_DELETED_RESTORABLE);
+	}
+
+	@Test
 	@DisplayName("비활성(SUSPENDED 포함) 계정은 USER_INACTIVE")
 	void validateLoginEligible_not_active() {
 		User user = User.of(1L, USER_UUID, "닉네임", null, "SUSPENDED", LocalDateTime.now(), LocalDateTime.now(), null);

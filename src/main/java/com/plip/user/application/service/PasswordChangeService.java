@@ -21,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PasswordChangeService implements PasswordChangeUseCase {
 
 	private static final String AUTH_TYPE_LOCAL = "LOCAL";
-	private static final String STATUS_ACTIVE = "ACTIVE";
 
 	private final UserPersistencePort userPersistencePort;
 	private final UserAuthPersistencePort userAuthPersistencePort;
 	private final PasswordEncoderPort passwordEncoderPort;
 	private final AuthTokenService authTokenService;
+	private final UserAccountStatusValidator userAccountStatusValidator;
 
 	@Override
 	@Transactional
@@ -37,9 +37,7 @@ public class PasswordChangeService implements PasswordChangeUseCase {
 		User user = userPersistencePort.findByUserUuid(userUuid)
 				.orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-		if (user.getDeletedAt() != null || !STATUS_ACTIVE.equals(user.getStatus())) {
-			throw new BusinessException(ErrorCode.USER_INACTIVE);
-		}
+		userAccountStatusValidator.validateLoginEligible(user);
 
 		UserAuth userAuth = userAuthPersistencePort.findByUserIdAndAuthType(user.getId(), AUTH_TYPE_LOCAL)
 				.orElseThrow(() -> new BusinessException(ErrorCode.LOCAL_ACCOUNT_NOT_FOUND));
