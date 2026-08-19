@@ -1,5 +1,6 @@
 package com.plip.user.adapter.in.web;
 
+import com.plip.user.adapter.in.web.dto.AccountRestoreResponse;
 import com.plip.user.adapter.in.web.dto.ErrorResponse;
 import com.plip.user.adapter.in.web.dto.LocalLoginRequest;
 import com.plip.user.adapter.in.web.dto.LocalLoginResponse;
@@ -7,6 +8,7 @@ import com.plip.user.adapter.in.web.dto.LogoutRequest;
 import com.plip.user.adapter.in.web.dto.LogoutResponse;
 import com.plip.user.adapter.in.web.dto.PasswordResetRequest;
 import com.plip.user.adapter.in.web.dto.PasswordResetResponse;
+import com.plip.user.adapter.in.web.dto.SocialRestoreRequest;
 import com.plip.user.adapter.in.web.dto.TokenReissueRequest;
 import com.plip.user.adapter.in.web.dto.TokenReissueResponse;
 import com.plip.user.application.port.in.LocalLoginCommand;
@@ -15,6 +17,9 @@ import com.plip.user.application.port.in.LoginResult;
 import com.plip.user.application.port.in.LogoutUseCase;
 import com.plip.user.application.port.in.PasswordResetCommand;
 import com.plip.user.application.port.in.PasswordResetUseCase;
+import com.plip.user.application.port.in.RestoreLocalCommand;
+import com.plip.user.application.port.in.RestoreSocialCommand;
+import com.plip.user.application.port.in.RestoreUserUseCase;
 import com.plip.user.application.port.in.TokenReissueUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,6 +30,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +46,7 @@ public class AuthLoginController {
 	private final TokenReissueUseCase tokenReissueUseCase;
 	private final PasswordResetUseCase passwordResetUseCase;
 	private final LogoutUseCase logoutUseCase;
+	private final RestoreUserUseCase restoreUserUseCase;
 
 	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.")
 	@ApiResponses({
@@ -101,5 +108,49 @@ public class AuthLoginController {
 	public ResponseEntity<LogoutResponse> logout(@Valid @RequestBody LogoutRequest request) {
 		logoutUseCase.logout(request.getRefreshToken());
 		return ResponseEntity.ok(LogoutResponse.of());
+	}
+
+	@Operation(
+			summary = "로컬 계정 복구",
+			description = "탈퇴 유예 기간(30일) 내 DELETED 계정을 이메일·비밀번호로 복구하고 JWT를 재발급합니다. "
+					+ "로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public)."
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "복구 성공"),
+			@ApiResponse(responseCode = "400", description = "복구 대상 아님",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "유예 기간 만료",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/restore/local")
+	public ResponseEntity<AccountRestoreResponse> restoreLocal(@Valid @RequestBody LocalLoginRequest request) {
+		LoginResult result = restoreUserUseCase.restoreLocal(
+				RestoreLocalCommand.of(request.getEmail(), request.getPassword()));
+		return ResponseEntity.ok(AccountRestoreResponse.of(result.getUserUuid(), result.getTokens()));
+	}
+
+	@Operation(
+			summary = "소셜 계정 복구",
+			description = "탈퇴 유예 기간(30일) 내 DELETED 계정을 소셜 액세스 토큰으로 복구하고 JWT를 재발급합니다. "
+					+ "소셜 로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public)."
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "복구 성공"),
+			@ApiResponse(responseCode = "400", description = "복구 대상 아님",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "401", description = "소셜 인증 실패",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "유예 기간 만료",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@PostMapping("/restore/social/{provider}")
+	public ResponseEntity<AccountRestoreResponse> restoreSocial(
+			@PathVariable String provider,
+			@Valid @RequestBody SocialRestoreRequest request) {
+		LoginResult result = restoreUserUseCase.restoreSocial(
+				RestoreSocialCommand.of(provider, request.getAccessToken()));
+		return ResponseEntity.ok(AccountRestoreResponse.of(result.getUserUuid(), result.getTokens()));
 	}
 }
