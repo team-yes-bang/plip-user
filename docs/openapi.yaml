@@ -16,6 +16,46 @@ tags:
 - name: Auth - Login & Token
   description: 로그인 및 JWT 토큰 API
 paths:
+  /api/v1/users/me/restore:
+    post:
+      tags:
+      - Users - Me
+      summary: 계정 복구
+      description: 탈퇴 유예 기간(30일) 내 DELETED 계정을 ACTIVE로 복구합니다.
+      operationId: restore
+      responses:
+        "200":
+          description: 복구 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserRestoreResponse"
+        "400":
+          description: 복구 대상 아님
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 유예 기간 만료
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
   /api/v1/auth/signup/local:
     post:
       tags:
@@ -108,6 +148,33 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: 비활성화된 계정
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/logout:
+    post:
+      tags:
+      - Auth - Login & Token
+      summary: 로그아웃
+      description: 리프레시 토큰을 무효화하고 user.logout Kafka 이벤트를 발행합니다. 액세스 토큰은 TTL 만료까지 stateless
+        유효.
+      operationId: logout
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutRequest"
+        required: true
+      responses:
+        "200":
+          description: 로그아웃 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/LogoutResponse"
+        "401":
+          description: 리프레시 토큰 무효
           content:
             '*/*':
               schema:
@@ -273,8 +340,62 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/v1/users/me:
+    delete:
+      tags:
+      - Users - Me
+      summary: 회원탈퇴
+      description: 계정을 DELETED 상태로 전환하고 30일 유예 기간을 시작합니다. Redis Refresh Token 전량 파기.
+      operationId: withdraw
+      responses:
+        "200":
+          description: 탈퇴 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserWithdrawResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 비활성화된 계정
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
 components:
   schemas:
+    ErrorResponse:
+      type: object
+      description: 에러 응답
+      properties:
+        code:
+          type: string
+          description: 에러 코드
+          example: OTP_001
+        message:
+          type: string
+          description: 에러 메시지
+          example: 요청 횟수가 제한을 초과했습니다.
+    UserRestoreResponse:
+      type: object
+      description: 계정 복구 응답
+      properties:
+        message:
+          type: string
+          description: 결과 메시지
+          example: 계정이 복구되었습니다.
     LocalSignupRequest:
       type: object
       description: 이메일 회원가입 요청
@@ -328,18 +449,6 @@ components:
       required:
       - agreed
       - termId
-    ErrorResponse:
-      type: object
-      description: 에러 응답
-      properties:
-        code:
-          type: string
-          description: 에러 코드
-          example: OTP_001
-        message:
-          type: string
-          description: 에러 메시지
-          example: 요청 횟수가 제한을 초과했습니다.
     LocalSignupResponse:
       type: object
       description: 이메일 회원가입 응답
@@ -420,6 +529,24 @@ components:
           type: string
           description: 결과 메시지
           example: 비밀번호가 재설정되었습니다.
+    LogoutRequest:
+      type: object
+      description: 로그아웃 요청
+      properties:
+        refreshToken:
+          type: string
+          description: 리프레시 토큰
+          minLength: 1
+      required:
+      - refreshToken
+    LogoutResponse:
+      type: object
+      description: 로그아웃 응답
+      properties:
+        message:
+          type: string
+          description: 결과 메시지
+          example: 로그아웃되었습니다.
     SocialLoginRequest:
       type: object
       description: 소셜 로그인 요청
@@ -597,6 +724,14 @@ components:
           type: string
           description: 결과 메시지
           example: 비밀번호가 변경되었습니다.
+    UserWithdrawResponse:
+      type: object
+      description: 회원탈퇴 응답
+      properties:
+        message:
+          type: string
+          description: 결과 메시지
+          example: 회원탈퇴가 완료되었습니다.
   securitySchemes:
     bearerAuth:
       type: http

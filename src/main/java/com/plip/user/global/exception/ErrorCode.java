@@ -34,6 +34,8 @@ public enum ErrorCode {
 	REFRESH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH_003", "리프레시 토큰이 유효하지 않습니다."),
 	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_004", "사용자를 찾을 수 없습니다."),
 	USER_INACTIVE(HttpStatus.FORBIDDEN, "AUTH_005", "비활성화된 계정입니다."),
+	USER_DELETED_RESTORABLE(HttpStatus.FORBIDDEN, "AUTH_010", "탈퇴 유예 기간 중인 계정입니다. 계정 복구가 필요합니다."),
+	USER_WITHDRAWAL_GRACE_EXPIRED(HttpStatus.FORBIDDEN, "AUTH_011", "탈퇴 유예 기간이 만료된 계정입니다."),
 	USER_BLOCKED(HttpStatus.FORBIDDEN, "AUTH_008", "계정 이용이 제한되었습니다."),
 	PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST, "AUTH_006", "기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다."),
 	LOCAL_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH_007", "로컬 계정이 존재하지 않습니다."),

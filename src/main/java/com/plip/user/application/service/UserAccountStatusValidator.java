@@ -8,13 +8,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserAccountStatusValidator {
 
-	private static final String STATUS_ACTIVE = "ACTIVE";
-
 	public void validateLoginEligible(User user) {
-		if (user.getDeletedAt() != null) {
-			throw new BusinessException(ErrorCode.USER_INACTIVE);
+		if (user.isDeleted()) {
+			throw new BusinessException(ErrorCode.USER_DELETED_RESTORABLE);
 		}
-		if (!STATUS_ACTIVE.equals(user.getStatus())) {
+		if (!User.STATUS_ACTIVE.equals(user.getStatus())) {
 			throw new BusinessException(ErrorCode.USER_INACTIVE);
 		}
 	}

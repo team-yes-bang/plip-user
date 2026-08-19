@@ -21,7 +21,7 @@ public class UserEntityMapper {
 		);
 	}
 
-	public UserEntity toEntity(User user) {
+	public UserEntity toNewEntity(User user) {
 		return UserEntity.builder()
 				.userUuid(user.getUserUuid().toUuid())
 				.nickname(user.getNickname())

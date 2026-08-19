@@ -79,16 +79,7 @@ public class TestInfraConfig {
 	@Bean
 	@Primary
 	public RefreshTokenPort refreshTokenPort() {
-		return new RefreshTokenPort() {
-			@Override
-			public void save(String userUuid, String refreshToken, long ttlSeconds) {}
-
-			@Override
-			public String findByUserUuid(String userUuid) { return null; }
-
-			@Override
-			public void deleteByUserUuid(String userUuid) {}
-		};
+		return new InMemoryRefreshTokenPort();
 	}
 
 	@Bean

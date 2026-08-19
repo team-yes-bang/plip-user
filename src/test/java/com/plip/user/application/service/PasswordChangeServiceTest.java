@@ -35,6 +35,7 @@ class PasswordChangeServiceTest {
 	@Mock private UserAuthPersistencePort userAuthPersistencePort;
 	@Mock private PasswordEncoderPort passwordEncoderPort;
 	@Mock private AuthTokenService authTokenService;
+	@Mock private UserAccountStatusValidator userAccountStatusValidator;
 
 	private static final UuidV7 USER_UUID = UuidV7.of(UUID.randomUUID());
 	private static final String CURRENT_PASSWORD = "currentPass1!";

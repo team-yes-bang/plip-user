@@ -31,16 +31,31 @@ public class AuthTokenService {
 	}
 
 	public AuthTokenResult reissue(String refreshToken) {
+		UuidV7 userUuid = validateRefreshToken(refreshToken);
+		refreshTokenPort.deleteByUserUuid(userUuid.toString());
+		return issueTokens(userUuid);
+	}
+
+	public UuidV7 validateAndRevokeRefreshToken(String refreshToken) {
+		UuidV7 userUuid = validateRefreshToken(refreshToken);
+		revokeTokens(userUuid);
+		return userUuid;
+	}
+
+	public void revokeTokens(UuidV7 userUuid) {
+		refreshTokenPort.deleteByUserUuid(userUuid.toString());
+	}
+
+	private UuidV7 validateRefreshToken(String refreshToken) {
+		if (refreshToken == null || refreshToken.isBlank()) {
+			throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
+		}
+
 		UuidV7 userUuid = tokenProviderPort.parseRefreshToken(refreshToken);
 		String storedToken = refreshTokenPort.findByUserUuid(userUuid.toString());
 		if (storedToken == null || !storedToken.equals(refreshToken)) {
 			throw new BusinessException(ErrorCode.REFRESH_TOKEN_INVALID);
 		}
-		refreshTokenPort.deleteByUserUuid(userUuid.toString());
-		return issueTokens(userUuid);
-	}
-
-	public void revokeTokens(UuidV7 userUuid) {
-		refreshTokenPort.deleteByUserUuid(userUuid.toString());
+		return userUuid;
 	}
 }
