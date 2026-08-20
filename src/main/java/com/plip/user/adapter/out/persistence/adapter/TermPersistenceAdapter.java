@@ -3,6 +3,7 @@ package com.plip.user.adapter.out.persistence.adapter;
 import com.plip.user.adapter.out.persistence.mapper.TermEntityMapper;
 import com.plip.user.adapter.out.persistence.repository.TermRepository;
 import com.plip.user.application.port.out.TermPersistencePort;
+import com.plip.user.domain.policy.TermActiveTermSelector;
 import com.plip.user.domain.model.Term;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -24,9 +25,17 @@ public class TermPersistenceAdapter implements TermPersistencePort {
 
 	@Override
 	public List<Term> findAllActiveRequired() {
-		return termRepository.findByStatusAndRequiredTrue("ACTIVE").stream()
+		return findAllActive().stream()
+				.filter(Term::isRequired)
+				.toList();
+	}
+
+	@Override
+	public List<Term> findAllActive() {
+		List<Term> activeTerms = termRepository.findByStatus("ACTIVE").stream()
 				.map(termEntityMapper::toDomain)
 				.toList();
+		return TermActiveTermSelector.latestPerTermCode(activeTerms);
 	}
 
 	@Override

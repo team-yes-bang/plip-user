@@ -45,8 +45,7 @@ public class NaverOAuthClient implements OAuthClient {
 					"naver",
 					(String) naverResponse.get("id"),
 					(String) naverResponse.get("email"),
-					(String) naverResponse.get("nickname"),
-					(String) naverResponse.get("profile_image")
+					(String) naverResponse.get("nickname")
 			);
 		} catch (BusinessException e) {
 			throw e;

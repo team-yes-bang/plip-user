@@ -122,7 +122,7 @@ class RestoreUserServiceTest {
 	@DisplayName("유예 기간 내 DELETED 소셜 계정 복구 성공 시 JWT 발급")
 	void restoreSocial_success() {
 		LocalDateTime deletedAt = LocalDateTime.now().minusDays(10);
-		OAuthUserInfo userInfo = new OAuthUserInfo(PROVIDER, PROVIDER_USER_ID, "social@plip.test", "닉네임", null);
+		OAuthUserInfo userInfo = new OAuthUserInfo(PROVIDER, PROVIDER_USER_ID, "social@plip.test", "닉네임");
 		UserAuth userAuth = UserAuth.of(
 				2L, 2L, "SOCIAL", "social@plip.test", null, PROVIDER, PROVIDER_USER_ID, null, null, null);
 		User user = User.of(2L, USER_UUID, "닉네임", null, "DELETED", LocalDateTime.now(), LocalDateTime.now(), deletedAt);
@@ -145,7 +145,7 @@ class RestoreUserServiceTest {
 	@Test
 	@DisplayName("미가입 소셜 계정 복구 실패")
 	void restoreSocial_account_not_found() {
-		OAuthUserInfo userInfo = new OAuthUserInfo(PROVIDER, PROVIDER_USER_ID, "social@plip.test", "닉네임", null);
+		OAuthUserInfo userInfo = new OAuthUserInfo(PROVIDER, PROVIDER_USER_ID, "social@plip.test", "닉네임");
 
 		given(oAuthUserInfoPort.getUserInfo(PROVIDER, SOCIAL_ACCESS_TOKEN)).willReturn(userInfo);
 		given(userAuthPersistencePort.findByProviderAndProviderUserId(PROVIDER, PROVIDER_USER_ID))

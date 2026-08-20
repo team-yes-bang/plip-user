@@ -99,11 +99,11 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null),
-					Term.of(2L, null, "개인정보 처리방침", "/terms/privacy", "PRIVACY", "v1.0", false, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null),
+					Term.of(2L, null, "개인정보 처리방침", "/terms/privacy", "PRIVACY", "1.0", false, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 			given(passwordEncoderPort.encode(PASSWORD)).willReturn("encoded_password");
@@ -218,10 +218,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 			given(passwordEncoderPort.encode(PASSWORD)).willReturn("encoded_password");
@@ -251,10 +251,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(2L, null, "마케팅 동의", "/terms/marketing", "MARKETING", "v1.0", false, "ACTIVE", null, null)
+					Term.of(2L, null, "마케팅 동의", "/terms/marketing", "MARKETING", "1.0", false, "ACTIVE", null, null)
 			));
 
 			// when & then
@@ -277,11 +277,11 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null),
-					Term.of(9L, null, "마케팅 수신 동의 (구버전)", "/terms/marketing/v0.9", "MARKETING", "v0.9", false, "DEPRECATED", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null),
+					Term.of(9L, null, "마케팅 수신 동의 (구버전)", "/terms/marketing/0.9", "MARKETING", "0.9", false, "DEPRECATED", null, null)
 			));
 
 			// when & then
@@ -304,10 +304,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 
 			// when & then
@@ -346,7 +346,7 @@ class SignupServiceTest {
 					"google", "access-token", null);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"google", "google-id-123", "social@example.com", "GoogleUser", null);
+					"google", "google-id-123", "social@example.com", "GoogleUser");
 			given(oAuthUserInfoPort.getUserInfo("google", "access-token")).willReturn(userInfo);
 
 			UserAuth existingAuth = UserAuth.of(
@@ -369,29 +369,27 @@ class SignupServiceTest {
 		}
 
 		@Test
-		@DisplayName("신규 소셜 사용자 - 닉네임/프로필은 프로바이더에서 수집")
-		void social_login_new_user_with_provider_info() {
+		@DisplayName("신규 소셜 사용자 - 닉네임은 프로바이더에서 수집, 프로필 이미지는 null")
+		void social_login_new_user_with_provider_nickname_only() {
 			// given
 			List<TermAgreementItem> terms = List.of(TermAgreementItem.of(1L, true));
 			SocialLoginCommand command = SocialLoginCommand.of(
 					"kakao", "kakao-token", terms);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"kakao", "kakao-id-456", "kakao@example.com",
-					"카카오닉네임", "https://kakao.com/profile.jpg");
+					"kakao", "kakao-id-456", "kakao@example.com", "카카오닉네임");
 			given(oAuthUserInfoPort.getUserInfo("kakao", "kakao-token")).willReturn(userInfo);
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("kakao", "kakao-id-456"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 
-			User savedUser = User.of(1L, USER_UUID, "카카오닉네임",
-					"https://kakao.com/profile.jpg", "ACTIVE", null, null, null);
+			User savedUser = User.of(1L, USER_UUID, "카카오닉네임", null, "ACTIVE", null, null, null);
 			given(userPersistencePort.save(any(User.class))).willReturn(savedUser);
 			given(userAuthPersistencePort.save(any(UserAuth.class))).willReturn(
 					UserAuth.of(1L, 1L, "SOCIAL", "kakao@example.com", null,
@@ -406,6 +404,9 @@ class SignupServiceTest {
 			// then
 			assertThat(result.getUserUuid()).isEqualTo(USER_UUID.toString());
 			assertThat(result.isNewUser()).isTrue();
+			org.mockito.ArgumentCaptor<User> userCaptor = org.mockito.ArgumentCaptor.forClass(User.class);
+			verify(userPersistencePort).save(userCaptor.capture());
+			assertThat(userCaptor.getValue().getProfileImagePath()).isNull();
 			then(eventPublisherPort).should().publish(eq("user.registered"), anyString(), anyString());
 		}
 
@@ -416,16 +417,15 @@ class SignupServiceTest {
 			SocialLoginCommand command = SocialLoginCommand.of("kakao", "kakao-token", terms);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"kakao", "kakao-id-long", "kakao@example.com",
-					"VeryLongNicknameFromProvider", null);
+					"kakao", "kakao-id-long", "kakao@example.com", "VeryLongNicknameFromProvider");
 			given(oAuthUserInfoPort.getUserInfo("kakao", "kakao-token")).willReturn(userInfo);
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("kakao", "kakao-id-long"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 
@@ -453,12 +453,12 @@ class SignupServiceTest {
 					"google", "access-token", null);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"google", "new-google-id", "new@example.com", "NewUser", null);
+					"google", "new-google-id", "new@example.com", "NewUser");
 			given(oAuthUserInfoPort.getUserInfo("google", "access-token")).willReturn(userInfo);
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("google", "new-google-id"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 
 			// when & then
@@ -476,7 +476,7 @@ class SignupServiceTest {
 					"naver", "naver-token", null);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"naver", "naver-id-789", "naver@example.com", "네이버유저", null);
+					"naver", "naver-id-789", "naver@example.com", "네이버유저");
 			given(oAuthUserInfoPort.getUserInfo("naver", "naver-token")).willReturn(userInfo);
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("naver", "naver-id-789"))
 					.willReturn(Optional.empty());

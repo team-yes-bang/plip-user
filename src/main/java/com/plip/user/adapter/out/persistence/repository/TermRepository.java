@@ -9,5 +9,7 @@ public interface TermRepository extends JpaRepository<TermEntity, Long> {
 
 	List<TermEntity> findByStatusAndRequiredTrue(String status);
 
+	List<TermEntity> findByStatus(String status);
+
 	List<TermEntity> findByIdIn(List<Long> ids);
 }

@@ -11,6 +11,7 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -23,6 +24,5 @@ eureka:
 jwt:
   secret: test-jwt-secret-key-for-unit-tests-only
 
-resend:
-  api-key: test-resend-api-key
-  from-email: test@plip.app
+mail:
+  from: test@plip.app
