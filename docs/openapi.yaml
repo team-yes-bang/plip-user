@@ -391,7 +391,8 @@ paths:
       tags:
       - Auth - Terms
       summary: ACTIVE 약관 목록
-      description: 가입·소셜 약관 동의 UI용 ACTIVE 약관 목록을 반환합니다.
+      description: 가입·소셜 약관 동의 UI용 ACTIVE 약관 목록. term_code당 version(major.minor) 최신
+        ACTIVE 1건만 반환.
       operationId: getActiveTerms
       responses:
         "200":
@@ -841,8 +842,8 @@ components:
           example: SERVICE
         version:
           type: string
-          description: 약관 버전
-          example: v1.0
+          description: 약관 버전 (major.minor)
+          example: "1.0"
         required:
           type: boolean
           description: 필수 여부

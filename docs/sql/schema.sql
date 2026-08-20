@@ -51,7 +51,7 @@ CREATE TABLE terms (
     title             VARCHAR(255) NOT NULL,
     content_path      VARCHAR(256) NOT NULL,        -- S3/CDN 약관 파일 경로
     term_code         VARCHAR(50)  NOT NULL,         -- SERVICE, PRIVACY, MARKETING 등
-    version           VARCHAR(20)  NOT NULL DEFAULT 'v1.0',
+    version           VARCHAR(20)  NOT NULL DEFAULT '1.0',
     is_required       BOOLEAN      NOT NULL DEFAULT TRUE,
     status            VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',  -- ACTIVE, DEPRECATED
     created_at        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

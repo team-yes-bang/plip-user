@@ -24,7 +24,7 @@ class TermQueryServiceTest {
 	@DisplayName("ACTIVE 약관 목록 조회")
 	void getActiveTerms() {
 		Term serviceTerm = Term.of(
-				1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null);
+				1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null);
 		given(termPersistencePort.findAllActive()).willReturn(List.of(serviceTerm));
 
 		assertThat(termQueryService.getActiveTerms()).containsExactly(serviceTerm);

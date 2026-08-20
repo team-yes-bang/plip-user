@@ -20,7 +20,7 @@ public class AuthTermsController {
 
 	private final GetActiveTermsUseCase getActiveTermsUseCase;
 
-	@Operation(summary = "ACTIVE 약관 목록", description = "가입·소셜 약관 동의 UI용 ACTIVE 약관 목록을 반환합니다.")
+	@Operation(summary = "ACTIVE 약관 목록", description = "가입·소셜 약관 동의 UI용 ACTIVE 약관 목록. term_code당 version(major.minor) 최신 ACTIVE 1건만 반환.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "조회 성공")
 	})

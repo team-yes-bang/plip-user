@@ -99,11 +99,11 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null),
-					Term.of(2L, null, "개인정보 처리방침", "/terms/privacy", "PRIVACY", "v1.0", false, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null),
+					Term.of(2L, null, "개인정보 처리방침", "/terms/privacy", "PRIVACY", "1.0", false, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 			given(passwordEncoderPort.encode(PASSWORD)).willReturn("encoded_password");
@@ -218,10 +218,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 			given(passwordEncoderPort.encode(PASSWORD)).willReturn("encoded_password");
@@ -251,10 +251,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(2L, null, "마케팅 동의", "/terms/marketing", "MARKETING", "v1.0", false, "ACTIVE", null, null)
+					Term.of(2L, null, "마케팅 동의", "/terms/marketing", "MARKETING", "1.0", false, "ACTIVE", null, null)
 			));
 
 			// when & then
@@ -277,11 +277,11 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null),
-					Term.of(9L, null, "마케팅 수신 동의 (구버전)", "/terms/marketing/v0.9", "MARKETING", "v0.9", false, "DEPRECATED", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null),
+					Term.of(9L, null, "마케팅 수신 동의 (구버전)", "/terms/marketing/0.9", "MARKETING", "0.9", false, "DEPRECATED", null, null)
 			));
 
 			// when & then
@@ -304,10 +304,10 @@ class SignupServiceTest {
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
 			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 
 			// when & then
@@ -382,10 +382,10 @@ class SignupServiceTest {
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("kakao", "kakao-id-456"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 
@@ -422,10 +422,10 @@ class SignupServiceTest {
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("kakao", "kakao-id-long"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(termPersistencePort.findAllByIdIn(anyList())).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 
@@ -458,7 +458,7 @@ class SignupServiceTest {
 			given(userAuthPersistencePort.findByProviderAndProviderUserId("google", "new-google-id"))
 					.willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "v1.0", true, "ACTIVE", null, null)
+					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
 
 			// when & then

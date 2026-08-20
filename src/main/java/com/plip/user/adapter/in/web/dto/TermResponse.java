@@ -23,7 +23,7 @@ public class TermResponse {
 	@Schema(description = "약관 코드", example = "SERVICE")
 	private String termCode;
 
-	@Schema(description = "약관 버전", example = "v1.0")
+	@Schema(description = "약관 버전 (major.minor)", example = "1.0")
 	private String version;
 
 	@Schema(description = "필수 여부")
