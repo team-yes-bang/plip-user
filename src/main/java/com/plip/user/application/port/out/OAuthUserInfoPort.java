@@ -8,7 +8,6 @@ public interface OAuthUserInfoPort {
 			String provider,
 			String providerUserId,
 			String email,
-			String nickname,
-			String profileImageUrl
+			String nickname
 	) {}
 }

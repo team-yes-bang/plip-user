@@ -234,11 +234,10 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 		validateTermsAgreements(agreements);
 
 		String nickname = normalizeSocialNickname(userInfo.nickname());
-		String profileImagePath = userInfo.profileImageUrl();
 		String email = userInfo.email() != null ? userInfo.email() : "";
 
 		UuidV7 userUuid = uuidGeneratorPort.generate();
-		User savedUser = createUser(userUuid, nickname, profileImagePath);
+		User savedUser = createUser(userUuid, nickname, null);
 
 		createSocialAuth(savedUser.getId(), email, userInfo.provider(), userInfo.providerUserId());
 		if (!agreements.isEmpty()) {

@@ -100,7 +100,7 @@ public class TestInfraConfig {
 	@Primary
 	public OAuthUserInfoPort oAuthUserInfoPort() {
 		return (provider, accessToken) -> new OAuthUserInfoPort.OAuthUserInfo(
-				provider, "test-provider-id", "social@example.com", "SocialUser", null
+				provider, "test-provider-id", "social@example.com", "SocialUser"
 		);
 	}
 }

@@ -40,8 +40,7 @@ public class GoogleOAuthClient implements OAuthClient {
 					"google",
 					(String) response.get("sub"),
 					(String) response.get("email"),
-					(String) response.get("name"),
-					(String) response.get("picture")
+					(String) response.get("name")
 			);
 		} catch (BusinessException e) {
 			throw e;

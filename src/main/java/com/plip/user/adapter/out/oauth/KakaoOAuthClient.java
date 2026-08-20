@@ -44,9 +44,8 @@ public class KakaoOAuthClient implements OAuthClient {
 
 			String email = kakaoAccount != null ? (String) kakaoAccount.get("email") : null;
 			String nickname = profile != null ? (String) profile.get("nickname") : null;
-			String profileImage = profile != null ? (String) profile.get("profile_image_url") : null;
 
-			return new OAuthUserInfo("kakao", providerUserId, email, nickname, profileImage);
+			return new OAuthUserInfo("kakao", providerUserId, email, nickname);
 		} catch (BusinessException e) {
 			throw e;
 		} catch (Exception e) {
