@@ -30,6 +30,13 @@ public class TermPersistenceAdapter implements TermPersistencePort {
 	}
 
 	@Override
+	public List<Term> findAllActive() {
+		return termRepository.findByStatus("ACTIVE").stream()
+				.map(termEntityMapper::toDomain)
+				.toList();
+	}
+
+	@Override
 	public List<Term> findAllByIdIn(List<Long> ids) {
 		return termRepository.findByIdIn(ids).stream()
 				.map(termEntityMapper::toDomain)

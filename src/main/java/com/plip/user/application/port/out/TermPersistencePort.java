@@ -11,5 +11,7 @@ public interface TermPersistencePort {
 
 	List<Term> findAllActiveRequired();
 
+	List<Term> findAllActive();
+
 	List<Term> findAllByIdIn(List<Long> ids);
 }
