@@ -1,42 +1,38 @@
 package com.plip.user.adapter.out.email;
 
 import com.plip.user.application.port.out.EmailSendPort;
-import com.plip.user.global.config.ResendProperties;
+import com.plip.user.global.config.MailProperties;
 import com.plip.user.global.exception.BusinessException;
 import com.plip.user.global.exception.ErrorCode;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
-
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
+@Profile("!test")
 @RequiredArgsConstructor
-public class ResendEmailAdapter implements EmailSendPort {
+public class SmtpEmailAdapter implements EmailSendPort {
 
-	private final RestClient resendRestClient;
-	private final ResendProperties resendProperties;
+	private final JavaMailSender mailSender;
+	private final MailProperties mailProperties;
 
 	@Override
 	public void sendOtp(String toEmail, String otpCode) {
-		Map<String, Object> body = Map.of(
-				"from", resendProperties.getFromEmail(),
-				"to", List.of(toEmail),
-				"subject", "[PLIP] 이메일 인증번호 안내",
-				"html", buildOtpHtml(otpCode)
-		);
-
 		try {
-			resendRestClient.post()
-					.uri("/emails")
-					.body(body)
-					.retrieve()
-					.toBodilessEntity();
+			MimeMessage message = mailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+			helper.setFrom(mailProperties.getFrom());
+			helper.setTo(toEmail);
+			helper.setSubject("[PLIP] 이메일 인증번호 안내");
+			helper.setText(buildOtpHtml(otpCode), true);
+			mailSender.send(message);
 		} catch (Exception e) {
-			log.error("Resend API 호출 실패: toEmail={}", toEmail, e);
+			log.error("SMTP 메일 발송 실패: toEmail={}", toEmail, e);
 			throw new BusinessException(ErrorCode.EMAIL_SEND_FAILED);
 		}
 	}
