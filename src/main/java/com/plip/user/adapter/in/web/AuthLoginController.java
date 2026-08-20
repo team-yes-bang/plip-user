@@ -21,14 +21,15 @@ import com.plip.user.application.port.in.RestoreLocalCommand;
 import com.plip.user.application.port.in.RestoreSocialCommand;
 import com.plip.user.application.port.in.RestoreUserUseCase;
 import com.plip.user.application.port.in.TokenReissueUseCase;
+import com.plip.user.global.config.SwaggerTags;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,8 +37,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Auth - Login & Token", description = "로그인 및 JWT 토큰 API")
 @RestController
+@Order(5)
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthLoginController {
@@ -48,7 +49,8 @@ public class AuthLoginController {
 	private final LogoutUseCase logoutUseCase;
 	private final RestoreUserUseCase restoreUserUseCase;
 
-	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.")
+	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.", tags = {
+			SwaggerTags.AUTH_SIGNUP_LOGIN })
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "로그인 성공"),
 			@ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치",
@@ -56,6 +58,7 @@ public class AuthLoginController {
 			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(2)
 	@PostMapping("/login/local")
 	public ResponseEntity<LocalLoginResponse> loginLocal(@Valid @RequestBody LocalLoginRequest request) {
 		LoginResult result = localLoginUseCase.login(
@@ -63,7 +66,8 @@ public class AuthLoginController {
 		return ResponseEntity.ok(LocalLoginResponse.of(result.getUserUuid(), result.getTokens()));
 	}
 
-	@Operation(summary = "토큰 재발급", description = "리프레시 토큰으로 액세스·리프레시 토큰을 재발급합니다 (RTR).")
+	@Operation(summary = "토큰 재발급", description = "리프레시 토큰으로 액세스·리프레시 토큰을 재발급합니다 (RTR).", tags = {
+			SwaggerTags.AUTH_TOKEN_ACCOUNT })
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "재발급 성공"),
 			@ApiResponse(responseCode = "401", description = "리프레시 토큰 무효",
@@ -71,12 +75,14 @@ public class AuthLoginController {
 			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(1)
 	@PostMapping("/reissue")
 	public ResponseEntity<TokenReissueResponse> reissue(@Valid @RequestBody TokenReissueRequest request) {
 		return ResponseEntity.ok(TokenReissueResponse.of(tokenReissueUseCase.reissue(request.getRefreshToken())));
 	}
 
-	@Operation(summary = "비밀번호 재설정", description = "이메일 OTP 인증 후 비밀번호를 재설정합니다.")
+	@Operation(summary = "비밀번호 재설정", description = "이메일 OTP 인증 후 비밀번호를 재설정합니다.", tags = {
+			SwaggerTags.AUTH_SIGNUP_LOGIN })
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "재설정 성공"),
 			@ApiResponse(responseCode = "400", description = "인증 토큰 무효, 기존 비밀번호와 동일",
@@ -84,6 +90,7 @@ public class AuthLoginController {
 			@ApiResponse(responseCode = "403", description = "비활성화된 계정",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(4)
 	@PostMapping("/password-reset")
 	public ResponseEntity<PasswordResetResponse> resetPassword(@Valid @RequestBody PasswordResetRequest request) {
 		passwordResetUseCase.resetPassword(PasswordResetCommand.of(
@@ -97,13 +104,15 @@ public class AuthLoginController {
 	@Operation(
 			summary = "로그아웃",
 			description = "리프레시 토큰을 무효화하고 user.logout Kafka 이벤트를 발행합니다. "
-					+ "액세스 토큰은 TTL 만료까지 stateless 유효."
+					+ "액세스 토큰은 TTL 만료까지 stateless 유효.",
+			tags = { SwaggerTags.AUTH_SIGNUP_LOGIN }
 	)
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "로그아웃 성공"),
 			@ApiResponse(responseCode = "401", description = "리프레시 토큰 무효",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(5)
 	@PostMapping("/logout")
 	public ResponseEntity<LogoutResponse> logout(@Valid @RequestBody LogoutRequest request) {
 		logoutUseCase.logout(request.getRefreshToken());
@@ -113,7 +122,8 @@ public class AuthLoginController {
 	@Operation(
 			summary = "로컬 계정 복구",
 			description = "탈퇴 유예 기간(30일) 내 DELETED 계정을 이메일·비밀번호로 복구하고 JWT를 재발급합니다. "
-					+ "로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public)."
+					+ "로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public).",
+			tags = { SwaggerTags.AUTH_TOKEN_ACCOUNT }
 	)
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "복구 성공"),
@@ -124,6 +134,7 @@ public class AuthLoginController {
 			@ApiResponse(responseCode = "403", description = "유예 기간 만료",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(2)
 	@PostMapping("/restore/local")
 	public ResponseEntity<AccountRestoreResponse> restoreLocal(@Valid @RequestBody LocalLoginRequest request) {
 		LoginResult result = restoreUserUseCase.restoreLocal(
@@ -134,7 +145,8 @@ public class AuthLoginController {
 	@Operation(
 			summary = "소셜 계정 복구",
 			description = "탈퇴 유예 기간(30일) 내 DELETED 계정을 소셜 액세스 토큰으로 복구하고 JWT를 재발급합니다. "
-					+ "소셜 로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public)."
+					+ "소셜 로그인 시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public).",
+			tags = { SwaggerTags.AUTH_TOKEN_ACCOUNT }
 	)
 	@ApiResponses({
 			@ApiResponse(responseCode = "200", description = "복구 성공"),
@@ -145,6 +157,7 @@ public class AuthLoginController {
 			@ApiResponse(responseCode = "403", description = "유예 기간 만료",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(3)
 	@PostMapping("/restore/social/{provider}")
 	public ResponseEntity<AccountRestoreResponse> restoreSocial(
 			@PathVariable String provider,

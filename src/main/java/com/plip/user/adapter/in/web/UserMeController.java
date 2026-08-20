@@ -8,6 +8,7 @@ import com.plip.user.application.port.in.AuthTokenResult;
 import com.plip.user.application.port.in.PasswordChangeCommand;
 import com.plip.user.application.port.in.PasswordChangeUseCase;
 import com.plip.user.application.port.in.WithdrawUserUseCase;
+import com.plip.user.global.config.SwaggerTags;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,8 +28,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Users - Me", description = "마이페이지 API")
+@Tag(name = SwaggerTags.USERS_ME, description = "마이페이지 API")
 @RestController
+@Order(4)
 @RequestMapping("/api/v1/users/me")
 @RequiredArgsConstructor
 public class UserMeController {
@@ -49,6 +52,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패 또는 현재 비밀번호 불일치",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(1)
 	@PatchMapping("/password")
 	public ResponseEntity<PasswordChangeResponse> changePassword(
 			@AuthenticationPrincipal String userUuid,
@@ -76,6 +80,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "404", description = "사용자 없음",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(2)
 	@DeleteMapping
 	public ResponseEntity<UserWithdrawResponse> withdraw(@AuthenticationPrincipal String userUuid) {
 		withdrawUserUseCase.withdraw(userUuid);

@@ -9,19 +9,19 @@ servers:
 tags:
 - name: Auth - Email OTP
   description: 이메일 OTP 인증 API
-- name: Auth - Signup & Social Login
-  description: 회원가입 및 소셜 로그인 API
 - name: Auth - Terms
   description: 가입·마이페이지 약관 API
+- name: Auth - Signup & Login
+  description: 회원가입·로그인·로그아웃·비밀번호 재설정 API
 - name: Users - Me
   description: 마이페이지 API
-- name: Auth - Login & Token
-  description: 로그인 및 JWT 토큰 API
+- name: Auth - Token & Account
+  description: JWT 토큰 재발급·탈퇴 계정 복구 API
 paths:
   /api/v1/auth/signup/local:
     post:
       tags:
-      - Auth - Signup & Social Login
+      - Auth - Signup & Login
       summary: 이메일 회원가입
       description: 이메일 인증 완료 후 회원가입을 진행합니다.
       operationId: signupLocal
@@ -53,7 +53,7 @@ paths:
   /api/v1/auth/restore/social/{provider}:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Token & Account
       summary: 소셜 계정 복구
       description: 탈퇴 유예 기간(30일) 내 DELETED 계정을 소셜 액세스 토큰으로 복구하고 JWT를 재발급합니다. 소셜 로그인
         시 AUTH_010 응답 후 본 API 호출. JWT 불필요(public).
@@ -98,7 +98,7 @@ paths:
   /api/v1/auth/restore/local:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Token & Account
       summary: 로컬 계정 복구
       description: 탈퇴 유예 기간(30일) 내 DELETED 계정을 이메일·비밀번호로 복구하고 JWT를 재발급합니다. 로그인 시 AUTH_010
         응답 후 본 API 호출. JWT 불필요(public).
@@ -137,7 +137,7 @@ paths:
   /api/v1/auth/reissue:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Token & Account
       summary: 토큰 재발급
       description: 리프레시 토큰으로 액세스·리프레시 토큰을 재발급합니다 (RTR).
       operationId: reissue
@@ -169,7 +169,7 @@ paths:
   /api/v1/auth/password-reset:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Signup & Login
       summary: 비밀번호 재설정
       description: 이메일 OTP 인증 후 비밀번호를 재설정합니다.
       operationId: resetPassword
@@ -201,7 +201,7 @@ paths:
   /api/v1/auth/logout:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Signup & Login
       summary: 로그아웃
       description: 리프레시 토큰을 무효화하고 user.logout Kafka 이벤트를 발행합니다. 액세스 토큰은 TTL 만료까지 stateless
         유효.
@@ -228,7 +228,7 @@ paths:
   /api/v1/auth/login/social/{provider}:
     post:
       tags:
-      - Auth - Signup & Social Login
+      - Auth - Signup & Login
       summary: 소셜 로그인
       description: 소셜 제공자의 액세스 토큰으로 로그인합니다. 기존 가입 사용자(provider+providerUserId 일치)는
         약관 없이 JWT를 발급하며 응답 newUser=false. 신규 사용자는 약관 동의 후 가입·JWT 발급(newUser=true).
@@ -268,7 +268,7 @@ paths:
   /api/v1/auth/login/local:
     post:
       tags:
-      - Auth - Login & Token
+      - Auth - Signup & Login
       summary: 로컬 로그인
       description: 이메일과 비밀번호로 로그인하고 JWT를 발급합니다.
       operationId: loginLocal
@@ -328,8 +328,8 @@ paths:
       tags:
       - Auth - Email OTP
       summary: OTP 발송 요청
-      description: "입력된 이메일로 6자리 인증번호를 발송합니다. purpose=SIGNUP은 미가입 이메일만, PASSWORD_RESET은\
-        \ 기존 LOCAL 계정 이메일만 발송합니다."
+      description: "입력된 이메일로 6자리 인증번호를 Gmail SMTP로 발송합니다. purpose=SIGNUP은 미가입 이메일만\
+        , PASSWORD_RESET은 기존 LOCAL 계정 이메일만 발송합니다."
       operationId: requestOtp
       requestBody:
         content:

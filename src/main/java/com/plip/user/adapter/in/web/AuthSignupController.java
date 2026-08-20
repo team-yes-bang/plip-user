@@ -11,6 +11,7 @@ import com.plip.user.application.port.in.LocalSignupUseCase;
 import com.plip.user.application.port.in.SignupResult;
 import com.plip.user.application.port.in.SocialLoginCommand;
 import com.plip.user.application.port.in.SocialLoginUseCase;
+import com.plip.user.global.config.SwaggerTags;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collections;
 import java.util.List;
 
-@Tag(name = "Auth - Signup & Social Login", description = "회원가입 및 소셜 로그인 API")
+@Tag(name = SwaggerTags.AUTH_SIGNUP_LOGIN, description = "회원가입·로그인·로그아웃·비밀번호 재설정 API")
 @RestController
+@Order(3)
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthSignupController {
@@ -47,6 +50,7 @@ public class AuthSignupController {
 			@ApiResponse(responseCode = "409", description = "이미 가입된 이메일",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(1)
 	@PostMapping("/signup/local")
 	public ResponseEntity<LocalSignupResponse> signupLocal(
 			@Valid @RequestBody LocalSignupRequest request) {
@@ -82,6 +86,7 @@ public class AuthSignupController {
 			@ApiResponse(responseCode = "422", description = "신규 사용자 — 약관 동의 필요",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
+	@Order(3)
 	@PostMapping("/login/social/{provider}")
 	public ResponseEntity<SocialLoginResponse> socialLogin(
 			@PathVariable String provider,
