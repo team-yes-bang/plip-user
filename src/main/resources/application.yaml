@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: user
+  profiles:
+    active: docker
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+otp:
+  length: 6
+  ttl-seconds: 120
+  verification-token-ttl-seconds: 600
+
+rate-limit:
+  email:
+    minute-max: 1
+    daily-max: 5
+  ip:
+    minute-max: 10
+    daily-max: 100
+
+mail:
+  from: ${MAIL_FROM:${MAIL_USERNAME:}}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
