@@ -41,6 +41,9 @@ public enum ErrorCode {
 	LOCAL_ACCOUNT_NOT_FOUND(HttpStatus.BAD_REQUEST, "AUTH_007", "로컬 계정이 존재하지 않습니다."),
 	CURRENT_PASSWORD_MISMATCH(HttpStatus.UNAUTHORIZED, "AUTH_009", "현재 비밀번호가 올바르지 않습니다."),
 
+	// Profile
+	PROFILE_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, "PROFILE_002", "수정할 항목이 없습니다."),
+
 	// Common
 	INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값이 올바르지 않습니다."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다.");

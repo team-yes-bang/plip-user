@@ -350,6 +350,41 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/users/me/profile:
+    patch:
+      tags:
+      - Users - Me
+      summary: 프로필 수정
+      description: "닉네임·프로필 이미지 경로를 부분 수정합니다. 미전달 필드는 유지하고, profileImagePath에 빈 문자\
+        열을 보내면 이미지를 제거합니다. 실제 이미지 파일 업로드는 별도 스토리지(S3/CDN)에서 수행합니다."
+      operationId: updateProfile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: 수정 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "400":
+          description: 닉네임·경로 형식 오류 또는 수정 항목 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
   /api/v1/users/me/password:
     patch:
       tags:
@@ -386,22 +421,40 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
-  /api/v1/auth/terms:
+  /api/v1/users/me:
     get:
       tags:
-      - Auth - Terms
-      summary: ACTIVE 약관 목록
-      description: 가입·소셜 약관 동의 UI용 ACTIVE 약관 목록. term_code당 version(major.minor) 최신
-        ACTIVE 1건만 반환.
-      operationId: getActiveTerms
+      - Users - Me
+      summary: 프로필 조회
+      description: 로그인한 사용자의 프로필 정보를 조회합니다. 아지트 입장 시 기본 프로필로 사용됩니다.
+      operationId: getProfile
       responses:
         "200":
           description: 조회 성공
           content:
             '*/*':
               schema:
-                $ref: "#/components/schemas/TermsListResponse"
-  /api/v1/users/me:
+                $ref: "#/components/schemas/UserProfileResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 비활성화된 계정
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
     delete:
       tags:
       - Users - Me
@@ -435,6 +488,21 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/v1/auth/terms:
+    get:
+      tags:
+      - Auth - Terms
+      summary: ACTIVE 약관 목록
+      description: 가입·소셜 약관 동의 UI용 ACTIVE 약관 목록. term_code당 version(major.minor) 최신
+        ACTIVE 1건만 반환.
+      operationId: getActiveTerms
+      responses:
+        "200":
+          description: 조회 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TermsListResponse"
 components:
   schemas:
     LocalSignupRequest:
@@ -782,6 +850,42 @@ components:
           type: string
           description: 결과 메시지
           example: 인증번호가 발송되었습니다.
+    ProfileUpdateRequest:
+      type: object
+      description: 프로필 수정 요청
+      properties:
+        nickname:
+          type: string
+          description: 닉네임 (선택). 미전달 시 유지
+          example: 플립이
+          maxLength: 12
+          minLength: 2
+        profileImagePath:
+          type: string
+          description: "프로필 이미지 상대 경로 (선택). 미전달 시 유지, 빈 문자열이면 제거"
+          example: profiles/user.png
+          maxLength: 255
+          minLength: 0
+    UserProfileResponse:
+      type: object
+      description: 본인 프로필 응답
+      properties:
+        userUuid:
+          type: string
+          description: 사용자 UUID
+          example: 01912345-6789-7abc-def0-123456789abc
+        nickname:
+          type: string
+          description: 닉네임
+          example: 플립이
+        profileImagePath:
+          type: string
+          description: 프로필 이미지 상대 경로
+          example: profiles/user.png
+        email:
+          type: string
+          description: 계정 이메일
+          example: user@example.com
     PasswordChangeRequest:
       type: object
       description: 비밀번호 변경 요청
