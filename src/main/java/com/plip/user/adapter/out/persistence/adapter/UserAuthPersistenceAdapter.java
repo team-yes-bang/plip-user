@@ -7,12 +7,16 @@ import com.plip.user.application.port.out.UserAuthPersistencePort;
 import com.plip.user.domain.model.UserAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class UserAuthPersistenceAdapter implements UserAuthPersistencePort {
+
+	private static final String AUTH_TYPE_LOCAL = "LOCAL";
 
 	private final UserAuthRepository userAuthRepository;
 	private final UserAuthEntityMapper userAuthEntityMapper;
@@ -38,6 +42,20 @@ public class UserAuthPersistenceAdapter implements UserAuthPersistencePort {
 	public Optional<UserAuth> findByUserIdAndAuthType(Long userId, String authType) {
 		return userAuthRepository.findByUserIdAndAuthTypeAndDeletedAtIsNull(userId, authType)
 				.map(userAuthEntityMapper::toDomain);
+	}
+
+	@Override
+	public Optional<String> findPrimaryEmailByUserId(Long userId) {
+		Optional<UserAuth> localAuth = findByUserIdAndAuthType(userId, AUTH_TYPE_LOCAL);
+		if (localAuth.map(UserAuth::getEmail).filter(StringUtils::hasText).isPresent()) {
+			return Optional.of(localAuth.get().getEmail());
+		}
+
+		return userAuthRepository.findByUserIdAndDeletedAtIsNull(userId).stream()
+				.map(UserAuthEntity::getEmail)
+				.filter(StringUtils::hasText)
+				.findFirst()
+				.map(String::trim);
 	}
 
 	@Override

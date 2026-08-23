@@ -79,4 +79,20 @@ public class User {
 		}
 		return !deletedAt.plusDays(WITHDRAWAL_GRACE_DAYS).isBefore(now);
 	}
+
+	public void updateProfile(String nickname, String profileImagePath) {
+		if (nickname != null) {
+			this.nickname = nickname;
+		}
+		if (profileImagePath != null) {
+			this.profileImagePath = normalizeProfileImagePath(profileImagePath);
+		}
+	}
+
+	private static String normalizeProfileImagePath(String profileImagePath) {
+		if (profileImagePath.isBlank()) {
+			return null;
+		}
+		return profileImagePath.trim();
+	}
 }

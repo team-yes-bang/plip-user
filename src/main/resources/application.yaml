@@ -36,10 +36,10 @@ otp:
 
 rate-limit:
   email:
-    minute-max: 1
-    daily-max: 5
+    minute-max: 5
+    daily-max: 20
   ip:
-    minute-max: 10
+    minute-max: 20
     daily-max: 100
 
 mail:

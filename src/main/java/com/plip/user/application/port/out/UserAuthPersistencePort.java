@@ -2,6 +2,7 @@ package com.plip.user.application.port.out;
 
 import com.plip.user.domain.model.UserAuth;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserAuthPersistencePort {
@@ -13,6 +14,8 @@ public interface UserAuthPersistencePort {
 	Optional<UserAuth> findByProviderAndProviderUserId(String provider, String providerUserId);
 
 	Optional<UserAuth> findByUserIdAndAuthType(Long userId, String authType);
+
+	Optional<String> findPrimaryEmailByUserId(Long userId);
 
 	UserAuth save(UserAuth userAuth);
 
