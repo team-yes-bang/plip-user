@@ -38,4 +38,10 @@ public class UserNotificationSetting {
 		setting.updatedAt = updatedAt;
 		return setting;
 	}
+
+	public void update(boolean agitNotifyEnabled, boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		this.agitNotifyEnabled = agitNotifyEnabled;
+		this.diaryNotifyEnabled = diaryNotifyEnabled;
+		this.diaryNotifyTime = diaryNotifyTime;
+	}
 }

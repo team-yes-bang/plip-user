@@ -39,8 +39,9 @@ public class UserTermsAgreementEntity extends BaseEntity {
 	private LocalDateTime revokedAt;
 
 	@Builder
-	private UserTermsAgreementEntity(Long userId, Long termId, boolean agreed,
+	private UserTermsAgreementEntity(Long id, Long userId, Long termId, boolean agreed,
 			LocalDateTime agreedAt, LocalDateTime revokedAt) {
+		this.id = id;
 		this.userId = userId;
 		this.termId = termId;
 		this.agreed = agreed;

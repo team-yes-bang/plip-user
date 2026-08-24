@@ -9,5 +9,11 @@ public interface UserTermsAgreementPersistencePort {
 
 	Optional<UserTermsAgreement> findById(Long id);
 
+	Optional<UserTermsAgreement> findByUserIdAndTermId(Long userId, Long termId);
+
+	List<UserTermsAgreement> findAllByUserId(Long userId);
+
+	UserTermsAgreement save(UserTermsAgreement agreement);
+
 	List<UserTermsAgreement> saveAll(List<UserTermsAgreement> agreements);
 }

@@ -8,5 +8,7 @@ public interface UserNotificationSettingPersistencePort {
 
 	Optional<UserNotificationSetting> findById(Long id);
 
+	Optional<UserNotificationSetting> findByUserId(Long userId);
+
 	UserNotificationSetting save(UserNotificationSetting setting);
 }
