@@ -1,6 +1,8 @@
 package com.plip.user.adapter.in.web;
 
 import com.plip.user.adapter.in.web.dto.ErrorResponse;
+import com.plip.user.adapter.in.web.dto.NotificationSettingsResponse;
+import com.plip.user.adapter.in.web.dto.NotificationSettingsUpdateRequest;
 import com.plip.user.adapter.in.web.dto.PasswordChangeRequest;
 import com.plip.user.adapter.in.web.dto.PasswordChangeResponse;
 import com.plip.user.adapter.in.web.dto.ProfileUpdateRequest;
@@ -10,6 +12,8 @@ import com.plip.user.application.port.in.AuthTokenResult;
 import com.plip.user.application.port.in.GetUserProfileUseCase;
 import com.plip.user.application.port.in.PasswordChangeCommand;
 import com.plip.user.application.port.in.PasswordChangeUseCase;
+import com.plip.user.application.port.in.UpdateNotificationSettingsCommand;
+import com.plip.user.application.port.in.UpdateNotificationSettingsUseCase;
 import com.plip.user.application.port.in.UpdateUserProfileCommand;
 import com.plip.user.application.port.in.UpdateUserProfileUseCase;
 import com.plip.user.application.port.in.WithdrawUserUseCase;
@@ -29,6 +33,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +47,7 @@ public class UserMeController {
 
 	private final GetUserProfileUseCase getUserProfileUseCase;
 	private final UpdateUserProfileUseCase updateUserProfileUseCase;
+	private final UpdateNotificationSettingsUseCase updateNotificationSettingsUseCase;
 	private final PasswordChangeUseCase passwordChangeUseCase;
 	private final WithdrawUserUseCase withdrawUserUseCase;
 
@@ -90,6 +96,35 @@ public class UserMeController {
 	}
 
 	@Operation(
+			summary = "알림 설정 저장",
+			description = "아지트·다이어리 알림 허용 여부와 다이어리 알림 시각을 저장합니다. 저장 성공 후 user.notification-setting-updated Kafka 이벤트를 발행합니다.",
+			security = @SecurityRequirement(name = "bearerAuth")
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "저장 성공"),
+			@ApiResponse(responseCode = "400", description = "입력값 오류",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "401", description = "인증 실패",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "사용자 또는 알림 설정 없음",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@Order(2)
+	@PutMapping("/notification-settings")
+	public ResponseEntity<NotificationSettingsResponse> updateNotificationSettings(
+			@AuthenticationPrincipal String userUuid,
+			@Valid @RequestBody NotificationSettingsUpdateRequest request) {
+		return ResponseEntity.ok(NotificationSettingsResponse.of(
+				updateNotificationSettingsUseCase.updateSettings(UpdateNotificationSettingsCommand.of(
+						userUuid,
+						request.getAgitNotifyEnabled(),
+						request.getDiaryNotifyEnabled(),
+						request.getDiaryNotifyTime()
+				))
+		));
+	}
+
+	@Operation(
 			summary = "비밀번호 변경",
 			description = "로그인한 사용자의 비밀번호를 변경합니다. 기존 비밀번호와 동일한 비밀번호는 사용할 수 없습니다. "
 					+ "변경 성공 시 Redis Refresh Token 전량 파기 후 새 Access/Refresh JWT 발급. "
@@ -103,7 +138,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패 또는 현재 비밀번호 불일치",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	@Order(2)
+	@Order(3)
 	@PatchMapping("/password")
 	public ResponseEntity<PasswordChangeResponse> changePassword(
 			@AuthenticationPrincipal String userUuid,
@@ -131,7 +166,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "404", description = "사용자 없음",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	@Order(3)
+	@Order(4)
 	@DeleteMapping
 	public ResponseEntity<UserWithdrawResponse> withdraw(@AuthenticationPrincipal String userUuid) {
 		withdrawUserUseCase.withdraw(userUuid);
