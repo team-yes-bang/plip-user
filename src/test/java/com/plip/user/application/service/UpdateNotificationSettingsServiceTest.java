@@ -61,37 +61,64 @@ class UpdateNotificationSettingsServiceTest {
 		setting = UserNotificationSetting.of(
 				10L, 1L, true, true, NOTIFY_TIME, null, null
 		);
-
-		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(activeUser));
 	}
 
 	@Test
-	@DisplayName("알림 설정 저장 성공 및 Kafka 이벤트 발행")
-	void updateSettings_success() {
+	@DisplayName("아지트 토글만 partial PATCH 성공")
+	void updateSettings_agitToggleOnly() {
+		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(activeUser));
 		given(userNotificationSettingPersistencePort.findByUserId(1L)).willReturn(Optional.of(setting));
 		given(userNotificationSettingPersistencePort.save(any(UserNotificationSetting.class)))
 				.willAnswer(invocation -> invocation.getArgument(0));
+
 		NotificationSettingResult result = updateNotificationSettingsService.updateSettings(
-				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), false, true, LocalTime.of(9, 30))
+				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), false, null, null)
 		);
 
 		assertThat(result.isAgitNotifyEnabled()).isFalse();
 		assertThat(result.isDiaryNotifyEnabled()).isTrue();
-		assertThat(result.getDiaryNotifyTime()).isEqualTo(LocalTime.of(9, 30));
+		assertThat(result.getDiaryNotifyTime()).isEqualTo(NOTIFY_TIME);
 
 		verify(userNotificationSettingUpdatedEventPort).publishSettingUpdated(
-				eq(USER_UUID), eq(false), eq(true), eq(LocalTime.of(9, 30))
+				eq(USER_UUID), eq(false), eq(true), eq(NOTIFY_TIME)
 		);
-		verify(userAccountStatusValidator).validateLoginEligible(activeUser);
+	}
+
+	@Test
+	@DisplayName("다이어리 알림 시각만 partial PATCH 성공")
+	void updateSettings_diaryTimeOnly() {
+		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(activeUser));
+		given(userNotificationSettingPersistencePort.findByUserId(1L)).willReturn(Optional.of(setting));
+		given(userNotificationSettingPersistencePort.save(any(UserNotificationSetting.class)))
+				.willAnswer(invocation -> invocation.getArgument(0));
+
+		NotificationSettingResult result = updateNotificationSettingsService.updateSettings(
+				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), null, null, LocalTime.of(9, 30))
+		);
+
+		assertThat(result.isAgitNotifyEnabled()).isTrue();
+		assertThat(result.isDiaryNotifyEnabled()).isTrue();
+		assertThat(result.getDiaryNotifyTime()).isEqualTo(LocalTime.of(9, 30));
+	}
+
+	@Test
+	@DisplayName("수정 항목 없음 시 NOTIFY_002")
+	void updateSettings_empty() {
+		assertThatThrownBy(() -> updateNotificationSettingsService.updateSettings(
+				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), null, null, null)
+		)).isInstanceOf(BusinessException.class)
+				.extracting(exception -> ((BusinessException) exception).getErrorCode())
+				.isEqualTo(ErrorCode.NOTIFICATION_SETTINGS_UPDATE_EMPTY);
 	}
 
 	@Test
 	@DisplayName("알림 설정 없음 시 NOTIFY_001")
 	void updateSettings_notFound() {
+		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(activeUser));
 		given(userNotificationSettingPersistencePort.findByUserId(1L)).willReturn(Optional.empty());
 
 		assertThatThrownBy(() -> updateNotificationSettingsService.updateSettings(
-				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), true, true, NOTIFY_TIME)
+				UpdateNotificationSettingsCommand.of(USER_UUID.toString(), true, null, null)
 		)).isInstanceOf(BusinessException.class)
 				.extracting(exception -> ((BusinessException) exception).getErrorCode())
 				.isEqualTo(ErrorCode.NOTIFICATION_SETTING_NOT_FOUND);

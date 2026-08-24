@@ -31,8 +31,8 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,6 +72,25 @@ class TermsNotificationFlowIntegrationTest {
 	}
 
 	@Test
+	@DisplayName("Access JWT로 유저 약관 동의 상태 GET 성공")
+	void getTermsAgreements_withIssuedAccessToken() throws Exception {
+		Term marketing = Term.of(3L, null, "마케팅", "terms/marketing", "MARKETING", "1.0",
+				false, "ACTIVE", null, null);
+
+		given(termPersistencePort.findAllActive()).willReturn(List.of(marketing));
+		given(userTermsAgreementPersistencePort.findAllByUserId(1L)).willReturn(List.of());
+
+		AuthTokenResult tokens = authTokenService.issueTokens(USER_UUID);
+
+		mockMvc.perform(get("/api/v1/users/me/terms-agreements")
+						.header("Authorization", "Bearer " + tokens.getAccessToken()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.agreements[0].termId").value(3))
+				.andExpect(jsonPath("$.agreements[0].termCode").value("MARKETING"))
+				.andExpect(jsonPath("$.agreements[0].agreed").value(false));
+	}
+
+	@Test
 	@DisplayName("Access JWT로 선택 약관 동의 PATCH 성공")
 	void updateTermsAgreements_withIssuedAccessToken() throws Exception {
 		Term marketing = Term.of(3L, null, "마케팅", "terms/marketing", "MARKETING", "1.0",
@@ -90,7 +109,7 @@ class TermsNotificationFlowIntegrationTest {
 
 		AuthTokenResult tokens = authTokenService.issueTokens(USER_UUID);
 
-		mockMvc.perform(patch("/api/v1/auth/terms/agreements")
+		mockMvc.perform(patch("/api/v1/users/me/terms-agreements")
 						.header("Authorization", "Bearer " + tokens.getAccessToken())
 						.contentType(MediaType.APPLICATION_JSON)
 						.content("""
@@ -102,8 +121,26 @@ class TermsNotificationFlowIntegrationTest {
 	}
 
 	@Test
-	@DisplayName("Access JWT로 알림 설정 PUT 성공")
-	void updateNotificationSettings_withIssuedAccessToken() throws Exception {
+	@DisplayName("Access JWT로 알림 설정 GET 성공")
+	void getNotificationSettings_withIssuedAccessToken() throws Exception {
+		UserNotificationSetting setting = UserNotificationSetting.of(
+				10L, 1L, true, true, LocalTime.of(21, 0), null, null
+		);
+
+		given(userNotificationSettingPersistencePort.findByUserId(1L)).willReturn(Optional.of(setting));
+
+		AuthTokenResult tokens = authTokenService.issueTokens(USER_UUID);
+
+		mockMvc.perform(get("/api/v1/users/me/notification-settings")
+						.header("Authorization", "Bearer " + tokens.getAccessToken()))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.agitNotifyEnabled").value(true))
+				.andExpect(jsonPath("$.diaryNotifyTime").value("21:00:00"));
+	}
+
+	@Test
+	@DisplayName("Access JWT로 알림 토글 partial PATCH 성공")
+	void patchNotificationSettings_toggleOnly() throws Exception {
 		UserNotificationSetting setting = UserNotificationSetting.of(
 				10L, 1L, true, true, LocalTime.of(21, 0), null, null
 		);
@@ -114,22 +151,34 @@ class TermsNotificationFlowIntegrationTest {
 
 		AuthTokenResult tokens = authTokenService.issueTokens(USER_UUID);
 
-		mockMvc.perform(put("/api/v1/users/me/notification-settings")
+		mockMvc.perform(patch("/api/v1/users/me/notification-settings")
 						.header("Authorization", "Bearer " + tokens.getAccessToken())
 						.contentType(MediaType.APPLICATION_JSON)
-						.content(objectMapper.writeValueAsString(new NotificationSettingsBody(
-								false, true, "09:30:00"
-						))))
+						.content("{\"agitNotifyEnabled\":false}"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.agitNotifyEnabled").value(false))
 				.andExpect(jsonPath("$.diaryNotifyEnabled").value(true))
-				.andExpect(jsonPath("$.diaryNotifyTime").value("09:30:00"));
+				.andExpect(jsonPath("$.diaryNotifyTime").value("21:00:00"));
 	}
 
-	private record NotificationSettingsBody(
-			boolean agitNotifyEnabled,
-			boolean diaryNotifyEnabled,
-			String diaryNotifyTime
-	) {
+	@Test
+	@DisplayName("Access JWT로 다이어리 알림 시각 partial PATCH 성공")
+	void patchNotificationSettings_diaryTimeOnly() throws Exception {
+		UserNotificationSetting setting = UserNotificationSetting.of(
+				10L, 1L, true, true, LocalTime.of(21, 0), null, null
+		);
+
+		given(userNotificationSettingPersistencePort.findByUserId(1L)).willReturn(Optional.of(setting));
+		given(userNotificationSettingPersistencePort.save(any(UserNotificationSetting.class)))
+				.willAnswer(invocation -> invocation.getArgument(0));
+
+		AuthTokenResult tokens = authTokenService.issueTokens(USER_UUID);
+
+		mockMvc.perform(patch("/api/v1/users/me/notification-settings")
+						.header("Authorization", "Bearer " + tokens.getAccessToken())
+						.contentType(MediaType.APPLICATION_JSON)
+						.content("{\"diaryNotifyTime\":\"09:30:00\"}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.diaryNotifyTime").value("09:30:00"));
 	}
 }

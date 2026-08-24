@@ -5,7 +5,7 @@
 사용자 알림 설정 변경 시 발행되는 이벤트입니다.
 
 - **Topic:** `user.notification-setting-updated`
-- **발행 주체:** user-service (알림 설정 PUT 성공 후)
+- **발행 주체:** user-service (알림 설정 PATCH 성공 후)
 - **구독자:** notification-service (푸시 스케줄·발송 정책 반영)
 
 ## Payload
@@ -34,7 +34,7 @@
 
 ## 발행 시점
 
-- `PUT /api/v1/users/me/notification-settings` 저장 성공 후
+- `PATCH /api/v1/users/me/notification-settings` 수정 성공 후
 
 ## 비고
 

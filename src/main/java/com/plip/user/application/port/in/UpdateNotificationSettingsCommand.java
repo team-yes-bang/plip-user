@@ -11,14 +11,14 @@ import java.time.LocalTime;
 public class UpdateNotificationSettingsCommand {
 
 	private String userUuid;
-	private boolean agitNotifyEnabled;
-	private boolean diaryNotifyEnabled;
+	private Boolean agitNotifyEnabled;
+	private Boolean diaryNotifyEnabled;
 	private LocalTime diaryNotifyTime;
 
 	private UpdateNotificationSettingsCommand(
 			String userUuid,
-			boolean agitNotifyEnabled,
-			boolean diaryNotifyEnabled,
+			Boolean agitNotifyEnabled,
+			Boolean diaryNotifyEnabled,
 			LocalTime diaryNotifyTime
 	) {
 		this.userUuid = userUuid;
@@ -29,12 +29,28 @@ public class UpdateNotificationSettingsCommand {
 
 	public static UpdateNotificationSettingsCommand of(
 			String userUuid,
-			boolean agitNotifyEnabled,
-			boolean diaryNotifyEnabled,
+			Boolean agitNotifyEnabled,
+			Boolean diaryNotifyEnabled,
 			LocalTime diaryNotifyTime
 	) {
 		return new UpdateNotificationSettingsCommand(
 				userUuid, agitNotifyEnabled, diaryNotifyEnabled, diaryNotifyTime
 		);
+	}
+
+	public boolean hasAgitNotifyEnabled() {
+		return agitNotifyEnabled != null;
+	}
+
+	public boolean hasDiaryNotifyEnabled() {
+		return diaryNotifyEnabled != null;
+	}
+
+	public boolean hasDiaryNotifyTime() {
+		return diaryNotifyTime != null;
+	}
+
+	public boolean isEmpty() {
+		return !hasAgitNotifyEnabled() && !hasDiaryNotifyEnabled() && !hasDiaryNotifyTime();
 	}
 }

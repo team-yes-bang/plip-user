@@ -44,4 +44,16 @@ public class UserNotificationSetting {
 		this.diaryNotifyEnabled = diaryNotifyEnabled;
 		this.diaryNotifyTime = diaryNotifyTime;
 	}
+
+	public void updatePartial(Boolean agitNotifyEnabled, Boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		if (agitNotifyEnabled != null) {
+			this.agitNotifyEnabled = agitNotifyEnabled;
+		}
+		if (diaryNotifyEnabled != null) {
+			this.diaryNotifyEnabled = diaryNotifyEnabled;
+		}
+		if (diaryNotifyTime != null) {
+			this.diaryNotifyTime = diaryNotifyTime;
+		}
+	}
 }

@@ -1,14 +1,15 @@
 package com.plip.user.adapter.in.web;
 
 import com.plip.user.adapter.in.web.dto.ErrorResponse;
+import com.plip.user.adapter.in.web.dto.NotificationSettingsPatchRequest;
 import com.plip.user.adapter.in.web.dto.NotificationSettingsResponse;
-import com.plip.user.adapter.in.web.dto.NotificationSettingsUpdateRequest;
 import com.plip.user.adapter.in.web.dto.PasswordChangeRequest;
 import com.plip.user.adapter.in.web.dto.PasswordChangeResponse;
 import com.plip.user.adapter.in.web.dto.ProfileUpdateRequest;
 import com.plip.user.adapter.in.web.dto.UserProfileResponse;
 import com.plip.user.adapter.in.web.dto.UserWithdrawResponse;
 import com.plip.user.application.port.in.AuthTokenResult;
+import com.plip.user.application.port.in.GetNotificationSettingsUseCase;
 import com.plip.user.application.port.in.GetUserProfileUseCase;
 import com.plip.user.application.port.in.PasswordChangeCommand;
 import com.plip.user.application.port.in.PasswordChangeUseCase;
@@ -33,7 +34,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,6 +47,7 @@ public class UserMeController {
 
 	private final GetUserProfileUseCase getUserProfileUseCase;
 	private final UpdateUserProfileUseCase updateUserProfileUseCase;
+	private final GetNotificationSettingsUseCase getNotificationSettingsUseCase;
 	private final UpdateNotificationSettingsUseCase updateNotificationSettingsUseCase;
 	private final PasswordChangeUseCase passwordChangeUseCase;
 	private final WithdrawUserUseCase withdrawUserUseCase;
@@ -96,24 +97,47 @@ public class UserMeController {
 	}
 
 	@Operation(
-			summary = "알림 설정 저장",
-			description = "아지트·다이어리 알림 허용 여부와 다이어리 알림 시각을 저장합니다. 저장 성공 후 user.notification-setting-updated Kafka 이벤트를 발행합니다.",
+			summary = "알림 설정 조회",
+			description = "로그인 사용자의 아지트·다이어리 알림 설정을 조회합니다.",
 			security = @SecurityRequirement(name = "bearerAuth")
 	)
 	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "저장 성공"),
-			@ApiResponse(responseCode = "400", description = "입력값 오류",
-					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "200", description = "조회 성공"),
 			@ApiResponse(responseCode = "401", description = "인증 실패",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "404", description = "사용자 또는 알림 설정 없음",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	@Order(2)
-	@PutMapping("/notification-settings")
-	public ResponseEntity<NotificationSettingsResponse> updateNotificationSettings(
+	@GetMapping("/notification-settings")
+	public ResponseEntity<NotificationSettingsResponse> getNotificationSettings(
+			@AuthenticationPrincipal String userUuid) {
+		return ResponseEntity.ok(NotificationSettingsResponse.of(
+				getNotificationSettingsUseCase.getSettings(userUuid)
+		));
+	}
+
+	@Operation(
+			summary = "알림 설정 수정",
+			description = "전달한 필드만 수정합니다. 토글 변경 시 해당 boolean 필드만, "
+					+ "다이어리 알림 시각은 diaryNotifyTime만 전달합니다. "
+					+ "저장 성공 후 user.notification-setting-updated Kafka 이벤트를 발행합니다.",
+			security = @SecurityRequirement(name = "bearerAuth")
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "수정 성공"),
+			@ApiResponse(responseCode = "400", description = "입력값 오류 또는 수정 항목 없음",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "401", description = "인증 실패",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "사용자 또는 알림 설정 없음",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@Order(3)
+	@PatchMapping("/notification-settings")
+	public ResponseEntity<NotificationSettingsResponse> patchNotificationSettings(
 			@AuthenticationPrincipal String userUuid,
-			@Valid @RequestBody NotificationSettingsUpdateRequest request) {
+			@Valid @RequestBody NotificationSettingsPatchRequest request) {
 		return ResponseEntity.ok(NotificationSettingsResponse.of(
 				updateNotificationSettingsUseCase.updateSettings(UpdateNotificationSettingsCommand.of(
 						userUuid,
@@ -138,7 +162,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "401", description = "인증 실패 또는 현재 비밀번호 불일치",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	@Order(3)
+	@Order(4)
 	@PatchMapping("/password")
 	public ResponseEntity<PasswordChangeResponse> changePassword(
 			@AuthenticationPrincipal String userUuid,
@@ -166,7 +190,7 @@ public class UserMeController {
 			@ApiResponse(responseCode = "404", description = "사용자 없음",
 					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	@Order(4)
+	@Order(5)
 	@DeleteMapping
 	public ResponseEntity<UserWithdrawResponse> withdraw(@AuthenticationPrincipal String userUuid) {
 		withdrawUserUseCase.withdraw(userUuid);
