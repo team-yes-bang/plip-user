@@ -47,6 +47,7 @@ public class SecurityConfig {
 						exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers(HttpMethod.PATCH, "/api/v1/auth/terms/agreements").authenticated()
 						.requestMatchers(
 								"/api/v1/auth/**",
 								"/v3/api-docs/**",
