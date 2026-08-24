@@ -51,6 +51,7 @@ class UpdateUserProfileServiceTest {
 		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(user));
 		given(userPersistencePort.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 		given(userAuthPersistencePort.findPrimaryEmailByUserId(1L)).willReturn(Optional.of("user@example.com"));
+		given(userAuthPersistencePort.findByUserIdAndAuthType(1L, "LOCAL")).willReturn(Optional.empty());
 
 		UserProfileResult result = updateUserProfileService.updateProfile(
 				UpdateUserProfileCommand.of(USER_UUID.toString(), "새닉네임", null)
@@ -67,6 +68,7 @@ class UpdateUserProfileServiceTest {
 		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(user));
 		given(userPersistencePort.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 		given(userAuthPersistencePort.findPrimaryEmailByUserId(1L)).willReturn(Optional.of("user@example.com"));
+		given(userAuthPersistencePort.findByUserIdAndAuthType(1L, "LOCAL")).willReturn(Optional.empty());
 
 		UserProfileResult result = updateUserProfileService.updateProfile(
 				UpdateUserProfileCommand.of(USER_UUID.toString(), null, "profiles/user.png")
@@ -87,6 +89,7 @@ class UpdateUserProfileServiceTest {
 		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(user));
 		given(userPersistencePort.save(any(User.class))).willAnswer(invocation -> invocation.getArgument(0));
 		given(userAuthPersistencePort.findPrimaryEmailByUserId(1L)).willReturn(Optional.of("user@example.com"));
+		given(userAuthPersistencePort.findByUserIdAndAuthType(1L, "LOCAL")).willReturn(Optional.empty());
 
 		UserProfileResult result = updateUserProfileService.updateProfile(
 				UpdateUserProfileCommand.of(USER_UUID.toString(), null, "")

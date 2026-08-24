@@ -47,6 +47,7 @@ class GetUserProfileServiceTest {
 
 		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(user));
 		given(userAuthPersistencePort.findPrimaryEmailByUserId(1L)).willReturn(Optional.of("user@example.com"));
+		given(userAuthPersistencePort.findByUserIdAndAuthType(1L, "LOCAL")).willReturn(Optional.empty());
 
 		UserProfileResult result = getUserProfileService.getProfile(USER_UUID.toString());
 
@@ -54,6 +55,7 @@ class GetUserProfileServiceTest {
 		assertThat(result.getNickname()).isEqualTo("플립이");
 		assertThat(result.getProfileImagePath()).isEqualTo("/users/avatar.jpg");
 		assertThat(result.getEmail()).isEqualTo("user@example.com");
+		assertThat(result.isHasLocalAuth()).isFalse();
 	}
 
 	@Test

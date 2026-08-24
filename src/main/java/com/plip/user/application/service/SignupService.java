@@ -63,13 +63,15 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 	private final EventPublisherPort eventPublisherPort;
 	private final AuthTokenService authTokenService;
 	private final UserAccountStatusValidator userAccountStatusValidator;
+	private final LocalSignupEmailValidator localSignupEmailValidator;
 
 	@Override
 	@Transactional
 	public SignupResult signup(LocalSignupCommand command) {
 		validateVerificationToken(command.getEmail(), command.getVerificationToken());
 		validateNickname(command.getNickname());
-		checkLocalEmailDuplicate(command.getEmail());
+		localSignupEmailValidator.assertEligibleForSignup(command.getEmail());
+		localSignupEmailValidator.releaseExpiredWithdrawnEmail(command.getEmail());
 
 		List<TermAgreementItem> agreements = command.getTermsAgreements() != null
 				? command.getTermsAgreements()
@@ -131,12 +133,6 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 			return trimmed.substring(0, 12);
 		}
 		return trimmed;
-	}
-
-	private void checkLocalEmailDuplicate(String email) {
-		if (userAuthPersistencePort.findByEmailAndAuthType(email, AUTH_TYPE_LOCAL).isPresent()) {
-			throw new BusinessException(ErrorCode.EMAIL_ALREADY_REGISTERED);
-		}
 	}
 
 	private void validateTermsAgreements(List<TermAgreementItem> agreements) {
@@ -224,10 +220,7 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 				? command.getTermsAgreements()
 				: Collections.emptyList();
 
-		List<Term> requiredTerms = termPersistencePort.findAllActiveRequired();
-		boolean hasRequiredTerms = !requiredTerms.isEmpty();
-
-		if (hasRequiredTerms && agreements.isEmpty()) {
+		if (!command.isTermsStepCompleted() && agreements.isEmpty()) {
 			throw new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED);
 		}
 

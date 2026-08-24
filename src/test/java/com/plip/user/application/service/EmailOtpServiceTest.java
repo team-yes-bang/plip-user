@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -47,6 +48,8 @@ class EmailOtpServiceTest {
 	private EmailSendPort emailSendPort;
 	@Mock
 	private UserAuthPersistencePort userAuthPersistencePort;
+	@Mock
+	private LocalSignupEmailValidator localSignupEmailValidator;
 	@Mock
 	private OtpProperties otpProperties;
 	@Mock
@@ -77,8 +80,6 @@ class EmailOtpServiceTest {
 		@DisplayName("SIGNUP - 정상 발송 시 OTP 저장 및 이메일 발송")
 		void requestOtp_signup_success() {
 			stubRateLimitNotExceeded();
-			given(userAuthPersistencePort.findByEmailAndAuthType(TEST_EMAIL, "LOCAL"))
-					.willReturn(Optional.empty());
 			given(otpProperties.getLength()).willReturn(6);
 			given(otpProperties.getTtlSeconds()).willReturn(120L);
 
@@ -94,10 +95,8 @@ class EmailOtpServiceTest {
 		@DisplayName("SIGNUP - 이미 가입된 LOCAL 이메일이면 예외 발생")
 		void requestOtp_signup_emailAlreadyRegistered() {
 			stubRateLimitNotExceeded();
-			given(userAuthPersistencePort.findByEmailAndAuthType(TEST_EMAIL, "LOCAL"))
-					.willReturn(Optional.of(
-							UserAuth.of(1L, 1L, "LOCAL", TEST_EMAIL, "hash", null, null, null, null, null)
-					));
+			doThrow(new BusinessException(ErrorCode.EMAIL_ALREADY_REGISTERED))
+					.when(localSignupEmailValidator).assertEligibleForSignup(TEST_EMAIL);
 
 			EmailOtpRequestCommand command = EmailOtpRequestCommand.of(
 					TEST_EMAIL, TEST_IP, OtpPurpose.SIGNUP);

@@ -2,7 +2,7 @@ package com.plip.user.application.port.out;
 
 import com.plip.user.domain.model.UserAuth;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface UserAuthPersistencePort {
@@ -20,4 +20,6 @@ public interface UserAuthPersistencePort {
 	UserAuth save(UserAuth userAuth);
 
 	void updatePasswordHash(Long id, String encodedPassword);
+
+	void softDelete(Long id, LocalDateTime deletedAt);
 }

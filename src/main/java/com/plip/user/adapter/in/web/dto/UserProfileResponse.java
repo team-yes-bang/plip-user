@@ -23,11 +23,21 @@ public class UserProfileResponse {
 	@Schema(description = "계정 이메일", example = "user@example.com")
 	private String email;
 
-	private UserProfileResponse(String userUuid, String nickname, String profileImagePath, String email) {
+	@Schema(description = "로컬(이메일·비밀번호) 계정 연동 여부")
+	private boolean hasLocalAuth;
+
+	private UserProfileResponse(
+			String userUuid,
+			String nickname,
+			String profileImagePath,
+			String email,
+			boolean hasLocalAuth
+	) {
 		this.userUuid = userUuid;
 		this.nickname = nickname;
 		this.profileImagePath = profileImagePath;
 		this.email = email;
+		this.hasLocalAuth = hasLocalAuth;
 	}
 
 	public static UserProfileResponse of(UserProfileResult result) {
@@ -35,7 +45,8 @@ public class UserProfileResponse {
 				result.getUserUuid(),
 				result.getNickname(),
 				result.getProfileImagePath(),
-				result.getEmail()
+				result.getEmail(),
+				result.isHasLocalAuth()
 		);
 	}
 }

@@ -32,6 +32,7 @@ public class EmailOtpService implements EmailOtpRequestUseCase, EmailOtpVerifyUs
 	private final RateLimitPort rateLimitPort;
 	private final EmailSendPort emailSendPort;
 	private final UserAuthPersistencePort userAuthPersistencePort;
+	private final LocalSignupEmailValidator localSignupEmailValidator;
 	private final OtpProperties otpProperties;
 	private final RateLimitProperties rateLimitProperties;
 
@@ -45,7 +46,7 @@ public class EmailOtpService implements EmailOtpRequestUseCase, EmailOtpVerifyUs
 		checkRateLimit(command.getEmail(), command.getClientIp(), purpose);
 
 		if (purpose == OtpPurpose.SIGNUP) {
-			ensureLocalEmailNotRegistered(command.getEmail());
+			localSignupEmailValidator.assertEligibleForSignup(command.getEmail());
 		} else if (purpose == OtpPurpose.PASSWORD_RESET) {
 			if (!hasActiveLocalAccount(command.getEmail())) {
 				return;
@@ -55,12 +56,6 @@ public class EmailOtpService implements EmailOtpRequestUseCase, EmailOtpVerifyUs
 		String otpCode = generateOtp(otpProperties.getLength());
 		otpPort.save(purpose, command.getEmail(), otpCode, otpProperties.getTtlSeconds());
 		emailSendPort.sendOtp(command.getEmail(), otpCode);
-	}
-
-	private void ensureLocalEmailNotRegistered(String email) {
-		if (userAuthPersistencePort.findByEmailAndAuthType(email, AUTH_TYPE_LOCAL).isPresent()) {
-			throw new BusinessException(ErrorCode.EMAIL_ALREADY_REGISTERED);
-		}
 	}
 
 	private boolean hasActiveLocalAccount(String email) {
