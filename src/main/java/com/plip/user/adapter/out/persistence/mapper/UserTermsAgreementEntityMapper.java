@@ -22,6 +22,7 @@ public class UserTermsAgreementEntityMapper {
 
 	public UserTermsAgreementEntity toEntity(UserTermsAgreement agreement) {
 		return UserTermsAgreementEntity.builder()
+				.id(agreement.getId())
 				.userId(agreement.getUserId())
 				.termId(agreement.getTermId())
 				.agreed(agreement.isAgreed())

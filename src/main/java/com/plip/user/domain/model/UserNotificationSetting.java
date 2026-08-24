@@ -38,4 +38,22 @@ public class UserNotificationSetting {
 		setting.updatedAt = updatedAt;
 		return setting;
 	}
+
+	public void update(boolean agitNotifyEnabled, boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		this.agitNotifyEnabled = agitNotifyEnabled;
+		this.diaryNotifyEnabled = diaryNotifyEnabled;
+		this.diaryNotifyTime = diaryNotifyTime;
+	}
+
+	public void updatePartial(Boolean agitNotifyEnabled, Boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		if (agitNotifyEnabled != null) {
+			this.agitNotifyEnabled = agitNotifyEnabled;
+		}
+		if (diaryNotifyEnabled != null) {
+			this.diaryNotifyEnabled = diaryNotifyEnabled;
+		}
+		if (diaryNotifyTime != null) {
+			this.diaryNotifyTime = diaryNotifyTime;
+		}
+	}
 }

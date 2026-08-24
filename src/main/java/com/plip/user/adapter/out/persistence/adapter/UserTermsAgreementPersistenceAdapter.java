@@ -23,6 +23,26 @@ public class UserTermsAgreementPersistenceAdapter implements UserTermsAgreementP
 	}
 
 	@Override
+	public Optional<UserTermsAgreement> findByUserIdAndTermId(Long userId, Long termId) {
+		return userTermsAgreementRepository.findByUserIdAndTermId(userId, termId)
+				.map(userTermsAgreementEntityMapper::toDomain);
+	}
+
+	@Override
+	public List<UserTermsAgreement> findAllByUserId(Long userId) {
+		return userTermsAgreementRepository.findAllByUserId(userId).stream()
+				.map(userTermsAgreementEntityMapper::toDomain)
+				.toList();
+	}
+
+	@Override
+	public UserTermsAgreement save(UserTermsAgreement agreement) {
+		return userTermsAgreementEntityMapper.toDomain(
+				userTermsAgreementRepository.save(userTermsAgreementEntityMapper.toEntity(agreement))
+		);
+	}
+
+	@Override
 	public List<UserTermsAgreement> saveAll(List<UserTermsAgreement> agreements) {
 		return userTermsAgreementRepository.saveAll(
 				agreements.stream()

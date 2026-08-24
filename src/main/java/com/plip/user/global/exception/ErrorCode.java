@@ -44,6 +44,14 @@ public enum ErrorCode {
 	// Profile
 	PROFILE_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, "PROFILE_002", "수정할 항목이 없습니다."),
 
+	// Terms
+	REQUIRED_TERM_REVOKE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "TERMS_001", "필수 약관은 철회할 수 없습니다."),
+	TERMS_AGREEMENTS_EMPTY(HttpStatus.BAD_REQUEST, "TERMS_002", "변경할 약관 동의 항목이 없습니다."),
+
+	// Notification
+	NOTIFICATION_SETTING_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFY_001", "알림 설정을 찾을 수 없습니다."),
+	NOTIFICATION_SETTINGS_UPDATE_EMPTY(HttpStatus.BAD_REQUEST, "NOTIFY_002", "수정할 항목이 없습니다."),
+
 	// Common
 	INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값이 올바르지 않습니다."),
 	INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다.");

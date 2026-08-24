@@ -36,8 +36,9 @@ public class UserNotificationSettingEntity extends BaseEntity {
 	private LocalTime diaryNotifyTime;
 
 	@Builder
-	private UserNotificationSettingEntity(Long userId, boolean agitNotifyEnabled,
+	private UserNotificationSettingEntity(Long id, Long userId, boolean agitNotifyEnabled,
 			boolean diaryNotifyEnabled, LocalTime diaryNotifyTime) {
+		this.id = id;
 		this.userId = userId;
 		this.agitNotifyEnabled = agitNotifyEnabled;
 		this.diaryNotifyEnabled = diaryNotifyEnabled;

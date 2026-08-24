@@ -40,4 +40,15 @@ public class UserTermsAgreement {
 		agreement.updatedAt = updatedAt;
 		return agreement;
 	}
+
+	public void agree(LocalDateTime agreedAt) {
+		this.agreed = true;
+		this.agreedAt = agreedAt;
+		this.revokedAt = null;
+	}
+
+	public void revoke(LocalDateTime revokedAt) {
+		this.agreed = false;
+		this.revokedAt = revokedAt;
+	}
 }

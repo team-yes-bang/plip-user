@@ -22,6 +22,12 @@ public class UserNotificationSettingPersistenceAdapter implements UserNotificati
 	}
 
 	@Override
+	public Optional<UserNotificationSetting> findByUserId(Long userId) {
+		return userNotificationSettingRepository.findByUserId(userId)
+				.map(userNotificationSettingEntityMapper::toDomain);
+	}
+
+	@Override
 	public UserNotificationSetting save(UserNotificationSetting setting) {
 		return userNotificationSettingEntityMapper.toDomain(
 				userNotificationSettingRepository.save(

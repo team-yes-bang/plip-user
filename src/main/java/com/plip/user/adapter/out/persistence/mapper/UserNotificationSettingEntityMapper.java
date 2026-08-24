@@ -21,6 +21,7 @@ public class UserNotificationSettingEntityMapper {
 
 	public UserNotificationSettingEntity toEntity(UserNotificationSetting setting) {
 		return UserNotificationSettingEntity.builder()
+				.id(setting.getId())
 				.userId(setting.getUserId())
 				.agitNotifyEnabled(setting.isAgitNotifyEnabled())
 				.diaryNotifyEnabled(setting.isDiaryNotifyEnabled())

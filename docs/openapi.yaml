@@ -350,6 +350,74 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/users/me/terms-agreements:
+    get:
+      tags:
+      - Users - Me
+      summary: 유저 약관 동의 상태 조회
+      description: ACTIVE 약관 목록과 로그인 사용자의 동의·철회 상태를 함께 반환합니다.
+      operationId: getAgreements
+      responses:
+        "200":
+          description: 조회 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserTermsAgreementsListResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Users - Me
+      summary: 선택 약관 동의·철회
+      description: 로그인 사용자의 선택(비필수) 약관 동의 상태를 변경합니다. 토글 변경 시 항목 1건만 전달합니다. 필수 약관 철회는
+        거부됩니다.
+      operationId: updateAgreements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TermsAgreementsUpdateRequest"
+        required: true
+      responses:
+        "200":
+          description: 변경 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TermsAgreementsUpdateResponse"
+        "400":
+          description: 필수 약관 철회·약관 없음·항목 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
   /api/v1/users/me/profile:
     patch:
       tags:
@@ -415,6 +483,74 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: 인증 실패 또는 현재 비밀번호 불일치
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/me/notification-settings:
+    get:
+      tags:
+      - Users - Me
+      summary: 알림 설정 조회
+      description: 로그인 사용자의 아지트·다이어리 알림 설정을 조회합니다.
+      operationId: getNotificationSettings
+      responses:
+        "200":
+          description: 조회 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationSettingsResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 또는 알림 설정 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+    patch:
+      tags:
+      - Users - Me
+      summary: 알림 설정 수정
+      description: "전달한 필드만 수정합니다. 토글 변경 시 해당 boolean 필드만, 다이어리 알림 시각은 diaryNotifyTime만\
+        \ 전달합니다. 저장 성공 후 user.notification-setting-updated Kafka 이벤트를 발행합니다."
+      operationId: patchNotificationSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationSettingsPatchRequest"
+        required: true
+      responses:
+        "200":
+          description: 수정 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationSettingsResponse"
+        "400":
+          description: 입력값 오류 또는 수정 항목 없음
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 사용자 또는 알림 설정 없음
           content:
             '*/*':
               schema:
@@ -850,6 +986,47 @@ components:
           type: string
           description: 결과 메시지
           example: 인증번호가 발송되었습니다.
+    TermsAgreementsUpdateRequest:
+      type: object
+      description: 약관 동의 변경 요청
+      properties:
+        agreements:
+          type: array
+          description: 변경할 약관 동의 목록
+          items:
+            $ref: "#/components/schemas/TermAgreementRequest"
+          minItems: 1
+      required:
+      - agreements
+    TermsAgreementItemResponse:
+      type: object
+      description: 약관 동의 상태
+      properties:
+        termId:
+          type: integer
+          format: int64
+          description: 약관 ID
+          example: 3
+        agreed:
+          type: boolean
+          description: 동의 여부
+        agreedAt:
+          type: string
+          format: date-time
+          description: 동의 시각
+        revokedAt:
+          type: string
+          format: date-time
+          description: 철회 시각
+    TermsAgreementsUpdateResponse:
+      type: object
+      description: 약관 동의 변경 응답
+      properties:
+        agreements:
+          type: array
+          description: 변경된 약관 동의 목록
+          items:
+            $ref: "#/components/schemas/TermsAgreementItemResponse"
     ProfileUpdateRequest:
       type: object
       description: 프로필 수정 요청
@@ -923,6 +1100,79 @@ components:
           type: string
           description: 결과 메시지
           example: 비밀번호가 변경되었습니다.
+    NotificationSettingsPatchRequest:
+      type: object
+      description: 알림 설정 수정 요청 (전달한 필드만 수정)
+      properties:
+        agitNotifyEnabled:
+          type: boolean
+          description: 아지트 알림 허용 여부 (선택). 토글 변경 시 해당 필드만 전달
+          example: true
+        diaryNotifyEnabled:
+          type: boolean
+          description: 다이어리 알림 허용 여부 (선택). 토글 변경 시 해당 필드만 전달
+          example: true
+        diaryNotifyTime:
+          type: string
+          description: 다이어리 알림 시각 (선택). 저장 버튼 클릭 시 해당 필드만 전달
+          example: 21:00:00
+    NotificationSettingsResponse:
+      type: object
+      description: 알림 설정 응답
+      properties:
+        agitNotifyEnabled:
+          type: boolean
+          description: 아지트 알림 허용 여부
+        diaryNotifyEnabled:
+          type: boolean
+          description: 다이어리 알림 허용 여부
+        diaryNotifyTime:
+          type: string
+          description: 다이어리 알림 시각
+    UserTermsAgreementItemResponse:
+      type: object
+      description: 유저 약관 동의 항목
+      properties:
+        termId:
+          type: integer
+          format: int64
+          description: 약관 ID
+          example: 3
+        termCode:
+          type: string
+          description: 약관 코드
+          example: MARKETING
+        title:
+          type: string
+          description: 약관 제목
+          example: 마케팅 수신 동의
+        contentPath:
+          type: string
+          description: 약관 본문 URL 경로
+          example: /terms/marketing
+        required:
+          type: boolean
+          description: 필수 여부
+        agreed:
+          type: boolean
+          description: 동의 여부
+        agreedAt:
+          type: string
+          format: date-time
+          description: 동의 시각
+        revokedAt:
+          type: string
+          format: date-time
+          description: 철회 시각
+    UserTermsAgreementsListResponse:
+      type: object
+      description: 유저 약관 동의 목록
+      properties:
+        agreements:
+          type: array
+          description: ACTIVE 약관별 동의 상태
+          items:
+            $ref: "#/components/schemas/UserTermsAgreementItemResponse"
     TermResponse:
       type: object
       description: 약관 항목
