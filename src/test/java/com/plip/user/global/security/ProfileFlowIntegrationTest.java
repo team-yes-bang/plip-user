@@ -57,6 +57,7 @@ class ProfileFlowIntegrationTest {
 
 		given(userPersistencePort.findByUserUuid(USER_UUID)).willReturn(Optional.of(user));
 		given(userAuthPersistencePort.findPrimaryEmailByUserId(1L)).willReturn(Optional.of("user@example.com"));
+		given(userAuthPersistencePort.findByUserIdAndAuthType(1L, "LOCAL")).willReturn(Optional.empty());
 		given(userPersistencePort.save(org.mockito.ArgumentMatchers.any(User.class)))
 				.willAnswer(invocation -> invocation.getArgument(0));
 	}

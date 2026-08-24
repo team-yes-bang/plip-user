@@ -49,6 +49,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 class SignupServiceTest {
@@ -68,6 +69,7 @@ class SignupServiceTest {
 	@Mock private EventPublisherPort eventPublisherPort;
 	@Mock private AuthTokenService authTokenService;
 	@Mock private UserAccountStatusValidator userAccountStatusValidator;
+	@Mock private LocalSignupEmailValidator localSignupEmailValidator;
 
 	private static final String EMAIL = "test@example.com";
 	private static final String TOKEN = "valid-token";
@@ -97,7 +99,6 @@ class SignupServiceTest {
 					EMAIL, TOKEN, PASSWORD, NICKNAME, termAgreements);
 
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
@@ -168,7 +169,6 @@ class SignupServiceTest {
 					EMAIL, TOKEN, PASSWORD, NICKNAME, Collections.emptyList());
 
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(Collections.emptyList());
 			given(uuidGeneratorPort.generate()).willReturn(USER_UUID);
 			given(passwordEncoderPort.encode(PASSWORD)).willReturn("encoded_password");
@@ -196,9 +196,8 @@ class SignupServiceTest {
 					EMAIL, TOKEN, PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(1L, true)));
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.of(
-					UserAuth.of(1L, 1L, "LOCAL", EMAIL, "hash", null, null, null, null, null)
-			));
+			doThrow(new BusinessException(ErrorCode.EMAIL_ALREADY_REGISTERED))
+					.when(localSignupEmailValidator).assertEligibleForSignup(EMAIL);
 
 			// when & then
 			assertThatThrownBy(() -> signupService.signup(command))
@@ -216,7 +215,6 @@ class SignupServiceTest {
 					EMAIL, TOKEN, PASSWORD, NICKNAME, termAgreements);
 
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
@@ -249,7 +247,6 @@ class SignupServiceTest {
 					EMAIL, TOKEN, PASSWORD, NICKNAME,
 					List.of(TermAgreementItem.of(2L, true)));
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
@@ -275,7 +272,6 @@ class SignupServiceTest {
 							TermAgreementItem.of(9L, true)
 					));
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
@@ -302,7 +298,6 @@ class SignupServiceTest {
 							TermAgreementItem.of(999L, true)
 					));
 			given(verificationTokenPort.findByEmail(OtpPurpose.SIGNUP, EMAIL)).willReturn(TOKEN);
-			given(userAuthPersistencePort.findByEmailAndAuthType(EMAIL, "LOCAL")).willReturn(Optional.empty());
 			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
 					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
 			));
@@ -446,20 +441,17 @@ class SignupServiceTest {
 		}
 
 		@Test
-		@DisplayName("필수 약관이 있을 때 신규 소셜 사용자가 약관 없이 요청하면 SOCIAL_SIGNUP_REQUIRED")
-		void social_login_new_user_without_terms_when_required_exists() {
+		@DisplayName("신규 소셜 사용자가 약관 단계 없이 요청하면 SOCIAL_SIGNUP_REQUIRED")
+		void social_login_new_user_without_terms() {
 			// given
 			SocialLoginCommand command = SocialLoginCommand.of(
-					"google", "access-token", null);
+					"naver", "naver-token", null);
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
-					"google", "new-google-id", "new@example.com", "NewUser");
-			given(oAuthUserInfoPort.getUserInfo("google", "access-token")).willReturn(userInfo);
-			given(userAuthPersistencePort.findByProviderAndProviderUserId("google", "new-google-id"))
+					"naver", "naver-id-789", "naver@example.com", "네이버유저");
+			given(oAuthUserInfoPort.getUserInfo("naver", "naver-token")).willReturn(userInfo);
+			given(userAuthPersistencePort.findByProviderAndProviderUserId("naver", "naver-id-789"))
 					.willReturn(Optional.empty());
-			given(termPersistencePort.findAllActiveRequired()).willReturn(List.of(
-					Term.of(1L, null, "서비스 이용약관", "/terms/service", "SERVICE", "1.0", true, "ACTIVE", null, null)
-			));
 
 			// when & then
 			assertThatThrownBy(() -> signupService.login(command))
@@ -469,11 +461,11 @@ class SignupServiceTest {
 		}
 
 		@Test
-		@DisplayName("필수 약관이 없으면 약관 없이도 소셜 가입 성공")
-		void social_login_new_user_without_terms_when_no_required() {
+		@DisplayName("약관 단계 완료 후에는 활성 약관이 없어도 소셜 가입 성공")
+		void social_login_new_user_after_terms_step_without_active_terms() {
 			// given
-			SocialLoginCommand command = SocialLoginCommand.of(
-					"naver", "naver-token", null);
+			SocialLoginCommand command = SocialLoginCommand.ofComplete(
+					"naver", "naver-token", Collections.emptyList());
 
 			OAuthUserInfo userInfo = new OAuthUserInfo(
 					"naver", "naver-id-789", "naver@example.com", "네이버유저");

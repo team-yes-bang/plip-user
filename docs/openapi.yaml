@@ -18,6 +18,90 @@ tags:
 - name: Auth - Token & Account
   description: JWT 토큰 재발급·탈퇴 계정 복구 API
 paths:
+  /api/v1/auth/social/signup/complete:
+    post:
+      tags:
+      - Auth - Signup & Login
+      summary: 소셜 가입 완료
+      description: pending 토큰과 약관 동의로 신규 소셜 가입을 완료하고 JWT를 발급합니다.
+      operationId: completeSocialSignup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialSignupCompleteRequest"
+        required: true
+      responses:
+        "200":
+          description: 가입 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SocialLoginResponse"
+        "400":
+          description: pending 토큰 무효 또는 필수 약관 미동의
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/social/signup-pending:
+    post:
+      tags:
+      - Auth - Signup & Login
+      summary: 소셜 가입 pending 저장
+      description: 신규 소셜 사용자(SOCIAL_003)의 제공자 액세스 토큰을 Redis에 임시 저장하고 pending 토큰을 반환합니다.
+      operationId: saveSocialSignupPending
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialSignupPendingRequest"
+        required: true
+      responses:
+        "200":
+          description: 저장 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SocialSignupPendingResponse"
+        "400":
+          description: 입력값 오류
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/auth/social/restore-pending:
+    post:
+      tags:
+      - Auth - Token & Account
+      summary: 소셜 복구 pending
+      description: 소셜 로그인 AUTH_010 응답 후 Redis pending 토큰으로 계정을 복구하고 JWT를 재발급합니다.
+      operationId: restoreSocialFromPending
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialRestorePendingRequest"
+        required: true
+      responses:
+        "200":
+          description: 복구 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AccountRestoreResponse"
+        "400":
+          description: pending 토큰 무효 또는 복구 대상 아님
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: 유예 기간 만료
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/v1/auth/signup/local:
     post:
       tags:
@@ -641,6 +725,136 @@ paths:
                 $ref: "#/components/schemas/TermsListResponse"
 components:
   schemas:
+    SocialSignupCompleteRequest:
+      type: object
+      description: 소셜 가입 완료 요청
+      properties:
+        pendingToken:
+          type: string
+          description: 소셜 가입 pending 토큰
+          minLength: 1
+        termsAgreements:
+          type: array
+          description: 약관 동의 목록
+          items:
+            $ref: "#/components/schemas/TermAgreementRequest"
+      required:
+      - pendingToken
+    TermAgreementRequest:
+      type: object
+      description: 약관 동의 항목
+      properties:
+        termId:
+          type: integer
+          format: int64
+          description: 약관 ID
+          example: 1
+        agreed:
+          type: boolean
+          description: 동의 여부
+          example: true
+      required:
+      - agreed
+      - termId
+    ErrorResponse:
+      type: object
+      description: 에러 응답
+      properties:
+        code:
+          type: string
+          description: 에러 코드
+          example: OTP_001
+        message:
+          type: string
+          description: 에러 메시지
+          example: 요청 횟수가 제한을 초과했습니다.
+    SocialLoginResponse:
+      type: object
+      description: 소셜 로그인 응답
+      properties:
+        accessToken:
+          type: string
+          description: 액세스 토큰
+        refreshToken:
+          type: string
+          description: 리프레시 토큰
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: 액세스 토큰 만료 시간(초)
+          example: 3600
+        userUuid:
+          type: string
+          description: 사용자 UUID
+          example: 01912345-6789-7abc-def0-123456789abc
+        newUser:
+          type: boolean
+          description: 신규 가입 여부
+          example: false
+    SocialSignupPendingRequest:
+      type: object
+      description: 소셜 가입 pending 저장 요청
+      properties:
+        provider:
+          type: string
+          description: 소셜 제공자
+          example: kakao
+          minLength: 1
+        accessToken:
+          type: string
+          description: 소셜 제공자 액세스 토큰
+          minLength: 1
+      required:
+      - accessToken
+      - provider
+    SocialSignupPendingResponse:
+      type: object
+      description: 소셜 가입 pending 저장 응답
+      properties:
+        pendingToken:
+          type: string
+          description: 약관 동의 완료 전까지 유지되는 pending 토큰
+        expiresInSeconds:
+          type: integer
+          format: int64
+          description: pending 토큰 TTL(초)
+    SocialRestorePendingRequest:
+      type: object
+      description: 소셜 복구 pending 요청
+      properties:
+        pendingToken:
+          type: string
+          description: 소셜 OAuth pending 토큰
+          minLength: 1
+      required:
+      - pendingToken
+    AccountRestoreResponse:
+      type: object
+      description: 계정 복구 응답
+      properties:
+        accessToken:
+          type: string
+          description: 액세스 토큰
+        refreshToken:
+          type: string
+          description: 리프레시 토큰
+        accessTokenExpiresIn:
+          type: integer
+          format: int64
+          description: 액세스 토큰 만료 시간(초)
+          example: 3600
+        code:
+          type: string
+          description: 결과 코드
+          example: USER_S002
+        message:
+          type: string
+          description: 결과 메시지
+          example: 계정이 복구되었습니다.
+        userUuid:
+          type: string
+          description: 사용자 UUID
+          example: 01912345-6789-7abc-def0-123456789abc
     LocalSignupRequest:
       type: object
       description: 이메일 회원가입 요청
@@ -678,34 +892,6 @@ components:
       - nickname
       - password
       - verificationToken
-    TermAgreementRequest:
-      type: object
-      description: 약관 동의 항목
-      properties:
-        termId:
-          type: integer
-          format: int64
-          description: 약관 ID
-          example: 1
-        agreed:
-          type: boolean
-          description: 동의 여부
-          example: true
-      required:
-      - agreed
-      - termId
-    ErrorResponse:
-      type: object
-      description: 에러 응답
-      properties:
-        code:
-          type: string
-          description: 에러 코드
-          example: OTP_001
-        message:
-          type: string
-          description: 에러 메시지
-          example: 요청 횟수가 제한을 초과했습니다.
     LocalSignupResponse:
       type: object
       description: 이메일 회원가입 응답
@@ -740,33 +926,6 @@ components:
           minLength: 1
       required:
       - accessToken
-    AccountRestoreResponse:
-      type: object
-      description: 계정 복구 응답
-      properties:
-        accessToken:
-          type: string
-          description: 액세스 토큰
-        refreshToken:
-          type: string
-          description: 리프레시 토큰
-        accessTokenExpiresIn:
-          type: integer
-          format: int64
-          description: 액세스 토큰 만료 시간(초)
-          example: 3600
-        code:
-          type: string
-          description: 결과 코드
-          example: USER_S002
-        message:
-          type: string
-          description: 결과 메시지
-          example: 계정이 복구되었습니다.
-        userUuid:
-          type: string
-          description: 사용자 UUID
-          example: 01912345-6789-7abc-def0-123456789abc
     LocalLoginRequest:
       type: object
       description: 로컬 로그인 요청
@@ -881,29 +1040,6 @@ components:
             $ref: "#/components/schemas/TermAgreementRequest"
       required:
       - accessToken
-    SocialLoginResponse:
-      type: object
-      description: 소셜 로그인 응답
-      properties:
-        accessToken:
-          type: string
-          description: 액세스 토큰
-        refreshToken:
-          type: string
-          description: 리프레시 토큰
-        accessTokenExpiresIn:
-          type: integer
-          format: int64
-          description: 액세스 토큰 만료 시간(초)
-          example: 3600
-        userUuid:
-          type: string
-          description: 사용자 UUID
-          example: 01912345-6789-7abc-def0-123456789abc
-        newUser:
-          type: boolean
-          description: 신규 가입 여부
-          example: false
     LocalLoginResponse:
       type: object
       description: 로컬 로그인 응답

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
@@ -70,5 +70,12 @@ public class UserAuthPersistenceAdapter implements UserAuthPersistencePort {
 		UserAuthEntity entity = userAuthRepository.findById(id)
 				.orElseThrow(() -> new IllegalStateException("UserAuth not found: " + id));
 		entity.updatePasswordHash(encodedPassword);
+	}
+
+	@Override
+	public void softDelete(Long id, LocalDateTime deletedAt) {
+		UserAuthEntity entity = userAuthRepository.findById(id)
+				.orElseThrow(() -> new IllegalStateException("UserAuth not found: " + id));
+		entity.softDelete(deletedAt);
 	}
 }

@@ -10,16 +10,33 @@ public class SocialLoginCommand {
 	private final String provider;
 	private final String accessToken;
 	private final List<LocalSignupCommand.TermAgreementItem> termsAgreements;
+	private final boolean termsStepCompleted;
 
-	private SocialLoginCommand(String provider, String accessToken,
-			List<LocalSignupCommand.TermAgreementItem> termsAgreements) {
+	private SocialLoginCommand(
+			String provider,
+			String accessToken,
+			List<LocalSignupCommand.TermAgreementItem> termsAgreements,
+			boolean termsStepCompleted
+	) {
 		this.provider = provider;
 		this.accessToken = accessToken;
 		this.termsAgreements = termsAgreements;
+		this.termsStepCompleted = termsStepCompleted;
 	}
 
-	public static SocialLoginCommand of(String provider, String accessToken,
-			List<LocalSignupCommand.TermAgreementItem> termsAgreements) {
-		return new SocialLoginCommand(provider, accessToken, termsAgreements);
+	public static SocialLoginCommand of(
+			String provider,
+			String accessToken,
+			List<LocalSignupCommand.TermAgreementItem> termsAgreements
+	) {
+		return new SocialLoginCommand(provider, accessToken, termsAgreements, false);
+	}
+
+	public static SocialLoginCommand ofComplete(
+			String provider,
+			String accessToken,
+			List<LocalSignupCommand.TermAgreementItem> termsAgreements
+	) {
+		return new SocialLoginCommand(provider, accessToken, termsAgreements, true);
 	}
 }

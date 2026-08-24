@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class UpdateUserProfileService implements UpdateUserProfileUseCase {
 
+	private static final String AUTH_TYPE_LOCAL = "LOCAL";
 	private static final int PROFILE_IMAGE_PATH_MAX_LENGTH = 255;
 
 	private final UserPersistencePort userPersistencePort;
@@ -51,12 +52,16 @@ public class UpdateUserProfileService implements UpdateUserProfileUseCase {
 
 		User savedUser = userPersistencePort.save(user);
 		String email = userAuthPersistencePort.findPrimaryEmailByUserId(savedUser.getId()).orElse("");
+		boolean hasLocalAuth = userAuthPersistencePort
+				.findByUserIdAndAuthType(savedUser.getId(), AUTH_TYPE_LOCAL)
+				.isPresent();
 
 		return UserProfileResult.of(
 				savedUser.getUserUuid().toString(),
 				savedUser.getNickname(),
 				savedUser.getProfileImagePath(),
-				email
+				email,
+				hasLocalAuth
 		);
 	}
 

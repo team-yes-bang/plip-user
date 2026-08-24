@@ -9,6 +9,7 @@ import com.plip.user.adapter.in.web.dto.LogoutResponse;
 import com.plip.user.adapter.in.web.dto.PasswordResetRequest;
 import com.plip.user.adapter.in.web.dto.PasswordResetResponse;
 import com.plip.user.adapter.in.web.dto.SocialRestoreRequest;
+import com.plip.user.adapter.in.web.dto.SocialRestorePendingRequest;
 import com.plip.user.adapter.in.web.dto.TokenReissueRequest;
 import com.plip.user.adapter.in.web.dto.TokenReissueResponse;
 import com.plip.user.application.port.in.LocalLoginCommand;
@@ -18,6 +19,8 @@ import com.plip.user.application.port.in.LogoutUseCase;
 import com.plip.user.application.port.in.PasswordResetCommand;
 import com.plip.user.application.port.in.PasswordResetUseCase;
 import com.plip.user.application.port.in.RestoreLocalCommand;
+import com.plip.user.application.port.in.RestoreSocialFromPendingCommand;
+import com.plip.user.application.port.in.RestoreSocialFromPendingUseCase;
 import com.plip.user.application.port.in.RestoreSocialCommand;
 import com.plip.user.application.port.in.RestoreUserUseCase;
 import com.plip.user.application.port.in.TokenReissueUseCase;
@@ -48,6 +51,7 @@ public class AuthLoginController {
 	private final PasswordResetUseCase passwordResetUseCase;
 	private final LogoutUseCase logoutUseCase;
 	private final RestoreUserUseCase restoreUserUseCase;
+	private final RestoreSocialFromPendingUseCase restoreSocialFromPendingUseCase;
 
 	@Operation(summary = "로컬 로그인", description = "이메일과 비밀번호로 로그인하고 JWT를 발급합니다.", tags = {
 			SwaggerTags.AUTH_SIGNUP_LOGIN })
@@ -164,6 +168,27 @@ public class AuthLoginController {
 			@Valid @RequestBody SocialRestoreRequest request) {
 		LoginResult result = restoreUserUseCase.restoreSocial(
 				RestoreSocialCommand.of(provider, request.getAccessToken()));
+		return ResponseEntity.ok(AccountRestoreResponse.of(result.getUserUuid(), result.getTokens()));
+	}
+
+	@Operation(
+			summary = "소셜 복구 pending",
+			description = "소셜 로그인 AUTH_010 응답 후 Redis pending 토큰으로 계정을 복구하고 JWT를 재발급합니다.",
+			tags = { SwaggerTags.AUTH_TOKEN_ACCOUNT }
+	)
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "복구 성공"),
+			@ApiResponse(responseCode = "400", description = "pending 토큰 무효 또는 복구 대상 아님",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "403", description = "유예 기간 만료",
+					content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	@Order(4)
+	@PostMapping("/social/restore-pending")
+	public ResponseEntity<AccountRestoreResponse> restoreSocialFromPending(
+			@Valid @RequestBody SocialRestorePendingRequest request) {
+		LoginResult result = restoreSocialFromPendingUseCase.restore(
+				RestoreSocialFromPendingCommand.of(request.getPendingToken()));
 		return ResponseEntity.ok(AccountRestoreResponse.of(result.getUserUuid(), result.getTokens()));
 	}
 }

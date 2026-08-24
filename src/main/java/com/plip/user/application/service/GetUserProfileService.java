@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class GetUserProfileService implements GetUserProfileUseCase {
 
+	private static final String AUTH_TYPE_LOCAL = "LOCAL";
+
 	private final UserPersistencePort userPersistencePort;
 	private final UserAuthPersistencePort userAuthPersistencePort;
 	private final UserAccountStatusValidator userAccountStatusValidator;
@@ -30,12 +32,16 @@ public class GetUserProfileService implements GetUserProfileUseCase {
 		userAccountStatusValidator.validateLoginEligible(user);
 
 		String email = userAuthPersistencePort.findPrimaryEmailByUserId(user.getId()).orElse("");
+		boolean hasLocalAuth = userAuthPersistencePort
+				.findByUserIdAndAuthType(user.getId(), AUTH_TYPE_LOCAL)
+				.isPresent();
 
 		return UserProfileResult.of(
 				user.getUserUuid().toString(),
 				user.getNickname(),
 				user.getProfileImagePath(),
-				email
+				email,
+				hasLocalAuth
 		);
 	}
 }

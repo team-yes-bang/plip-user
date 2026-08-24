@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "user_auths")
 @Getter
@@ -53,5 +55,9 @@ public class UserAuthEntity extends SoftDeleteEntity {
 
 	public void updatePasswordHash(String passwordHash) {
 		this.passwordHash = passwordHash;
+	}
+
+	public void softDelete(LocalDateTime deletedAt) {
+		applyDeletedAt(deletedAt);
 	}
 }

@@ -12,13 +12,15 @@ public class UserProfileResult {
 	private final String nickname;
 	private final String profileImagePath;
 	private final String email;
+	private final boolean hasLocalAuth;
 
 	public static UserProfileResult of(
 			String userUuid,
 			String nickname,
 			String profileImagePath,
-			String email
+			String email,
+			boolean hasLocalAuth
 	) {
-		return new UserProfileResult(userUuid, nickname, profileImagePath, email);
+		return new UserProfileResult(userUuid, nickname, profileImagePath, email, hasLocalAuth);
 	}
 }
