@@ -1199,6 +1199,9 @@ components:
           type: string
           description: 계정 이메일
           example: user@example.com
+        hasLocalAuth:
+          type: boolean
+          description: 로컬(이메일·비밀번호) 계정 연동 여부
     PasswordChangeRequest:
       type: object
       description: 비밀번호 변경 요청
