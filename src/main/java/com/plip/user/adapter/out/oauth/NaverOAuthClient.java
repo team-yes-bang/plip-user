@@ -18,7 +18,15 @@ public class NaverOAuthClient implements OAuthClient {
 	private final RestClient restClient;
 
 	public NaverOAuthClient() {
-		this.restClient = RestClient.builder()
+		this(createDefaultRestClient());
+	}
+
+	NaverOAuthClient(RestClient restClient) {
+		this.restClient = restClient;
+	}
+
+	private static RestClient createDefaultRestClient() {
+		return RestClient.builder()
 				.baseUrl(USERINFO_URL)
 				.build();
 	}
@@ -41,9 +49,12 @@ public class NaverOAuthClient implements OAuthClient {
 				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
 			}
 
+			String providerUserId = OAuthProviderUserIdValidator.requireProviderUserId(
+					(String) naverResponse.get("id"));
+
 			return new OAuthUserInfo(
 					"naver",
-					(String) naverResponse.get("id"),
+					providerUserId,
 					(String) naverResponse.get("email"),
 					(String) naverResponse.get("nickname")
 			);
