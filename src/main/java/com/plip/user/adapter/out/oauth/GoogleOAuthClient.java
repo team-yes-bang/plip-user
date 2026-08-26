@@ -18,7 +18,15 @@ public class GoogleOAuthClient implements OAuthClient {
 	private final RestClient restClient;
 
 	public GoogleOAuthClient() {
-		this.restClient = RestClient.builder()
+		this(createDefaultRestClient());
+	}
+
+	GoogleOAuthClient(RestClient restClient) {
+		this.restClient = restClient;
+	}
+
+	private static RestClient createDefaultRestClient() {
+		return RestClient.builder()
 				.baseUrl(USERINFO_URL)
 				.build();
 	}
@@ -36,9 +44,14 @@ public class GoogleOAuthClient implements OAuthClient {
 				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
 			}
 
+			String providerUserId = (String) response.get("sub");
+			if (providerUserId == null || providerUserId.isBlank()) {
+				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
+			}
+
 			return new OAuthUserInfo(
 					"google",
-					(String) response.get("sub"),
+					providerUserId,
 					(String) response.get("email"),
 					(String) response.get("name")
 			);
