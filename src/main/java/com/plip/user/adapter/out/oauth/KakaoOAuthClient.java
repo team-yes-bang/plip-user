@@ -18,7 +18,15 @@ public class KakaoOAuthClient implements OAuthClient {
 	private final RestClient restClient;
 
 	public KakaoOAuthClient() {
-		this.restClient = RestClient.builder()
+		this(createDefaultRestClient());
+	}
+
+	KakaoOAuthClient(RestClient restClient) {
+		this.restClient = restClient;
+	}
+
+	private static RestClient createDefaultRestClient() {
+		return RestClient.builder()
 				.baseUrl(USERINFO_URL)
 				.build();
 	}
@@ -36,7 +44,7 @@ public class KakaoOAuthClient implements OAuthClient {
 				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
 			}
 
-			String providerUserId = String.valueOf(response.get("id"));
+			String providerUserId = OAuthProviderUserIdValidator.requireProviderUserId(response.get("id"));
 			Map<String, Object> kakaoAccount = (Map<String, Object>) response.get("kakao_account");
 			Map<String, Object> profile = kakaoAccount != null
 					? (Map<String, Object>) kakaoAccount.get("profile")

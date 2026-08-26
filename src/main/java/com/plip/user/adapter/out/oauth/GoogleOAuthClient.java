@@ -44,10 +44,7 @@ public class GoogleOAuthClient implements OAuthClient {
 				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
 			}
 
-			String providerUserId = (String) response.get("sub");
-			if (providerUserId == null || providerUserId.isBlank()) {
-				throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
-			}
+			String providerUserId = OAuthProviderUserIdValidator.requireProviderUserId((String) response.get("sub"));
 
 			return new OAuthUserInfo(
 					"google",

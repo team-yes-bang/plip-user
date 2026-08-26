@@ -101,11 +101,32 @@ public class SignupService implements LocalSignupUseCase, SocialLoginUseCase {
 	public SignupResult login(SocialLoginCommand command) {
 		OAuthUserInfo userInfo = oAuthUserInfoPort.getUserInfo(
 				command.getProvider(), command.getAccessToken());
+		validateSocialUserInfo(userInfo);
 
-		return userAuthPersistencePort
+		SignupResult result = userAuthPersistencePort
 				.findByProviderAndProviderUserId(userInfo.provider(), userInfo.providerUserId())
 				.map(this::handleExistingSocialUser)
 				.orElseGet(() -> handleNewSocialUser(command, userInfo));
+
+		log.info(
+				"소셜 로그인 provider={} providerUserId={} userUuid={} newUser={}",
+				userInfo.provider(),
+				userInfo.providerUserId(),
+				result.getUserUuid(),
+				result.isNewUser()
+		);
+		return result;
+	}
+
+	private void validateSocialUserInfo(OAuthUserInfo userInfo) {
+		if (userInfo.provider() == null || userInfo.provider().isBlank()) {
+			throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
+		}
+		String providerUserId = userInfo.providerUserId();
+		if (providerUserId == null || providerUserId.isBlank()
+				|| "null".equalsIgnoreCase(providerUserId.trim())) {
+			throw new BusinessException(ErrorCode.SOCIAL_AUTH_FAILED);
+		}
 	}
 
 	private void validateVerificationToken(String email, String token) {
