@@ -85,6 +85,37 @@ CREATE TABLE user_notification_settings (
     UNIQUE KEY uk_notification_user (user_id)
 );
 
+CREATE TABLE user_notifications (
+    id                   BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    recipient_user_uuid  BINARY(16)   NOT NULL,
+    type                 VARCHAR(32)  NOT NULL,
+    title                VARCHAR(200) NOT NULL,
+    body                 VARCHAR(500) NULL,
+    deep_link            VARCHAR(500) NULL,
+    resource_id          VARCHAR(64)  NULL,
+    agit_uuid            BINARY(16)   NULL,
+    dedupe_key           VARCHAR(128) NOT NULL,
+    read_at              DATETIME     NULL,
+    created_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at           DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_notification_dedupe (recipient_user_uuid, dedupe_key),
+    INDEX idx_user_notifications_inbox (recipient_user_uuid, created_at DESC),
+    INDEX idx_user_notifications_unread (recipient_user_uuid, read_at)
+);
+
+CREATE TABLE notification_agit_members (
+    id          BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    agit_uuid   BINARY(16)   NOT NULL,
+    user_uuid   BINARY(16)   NOT NULL,
+    role        VARCHAR(20)  NOT NULL,
+    active      BOOLEAN      NOT NULL DEFAULT TRUE,
+    agit_name   VARCHAR(200) NULL,
+    created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_notification_agit_member (agit_uuid, user_uuid),
+    INDEX idx_notification_agit_members_active (agit_uuid, active)
+);
+
 CREATE TABLE user_sanctions (
     id                BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
     user_id           BIGINT       NOT NULL,

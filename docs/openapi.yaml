@@ -18,6 +18,36 @@ tags:
 - name: Auth - Token & Account
   description: JWT 토큰 재발급·탈퇴 계정 복구 API
 paths:
+  /api/v1/users/me/notifications/seed:
+    post:
+      tags:
+      - Users - Me
+      summary: 데모 알림 시드
+      operationId: seed
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationInboxResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/me/notifications/read-all:
+    post:
+      tags:
+      - Users - Me
+      summary: 모두 읽음
+      operationId: markAllRead
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationReadAllResponse"
+      security:
+      - bearerAuth: []
   /api/v1/auth/social/signup/complete:
     post:
       tags:
@@ -573,6 +603,28 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/v1/users/me/notifications/{notificationId}/read:
+    patch:
+      tags:
+      - Users - Me
+      summary: 알림 읽음
+      operationId: markRead
+      parameters:
+      - name: notificationId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationItemResponse"
+      security:
+      - bearerAuth: []
   /api/v1/users/me/notification-settings:
     get:
       tags:
@@ -708,6 +760,50 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/v1/users/me/notifications:
+    get:
+      tags:
+      - Users - Me
+      summary: 알림함 조회
+      operationId: list
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 30
+      responses:
+        "200":
+          description: 조회 성공
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationInboxResponse"
+        "401":
+          description: 인증 실패
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/v1/users/me/notifications/unread-count:
+    get:
+      tags:
+      - Users - Me
+      summary: 읽지 않은 알림 수
+      operationId: unreadCount
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/NotificationUnreadCountResponse"
+      security:
+      - bearerAuth: []
   /api/v1/auth/terms:
     get:
       tags:
@@ -725,6 +821,62 @@ paths:
                 $ref: "#/components/schemas/TermsListResponse"
 components:
   schemas:
+    NotificationInboxResponse:
+      type: object
+      description: 알림함
+      properties:
+        items:
+          type: array
+          description: 알림 목록
+          items:
+            $ref: "#/components/schemas/NotificationItemResponse"
+        unreadCount:
+          type: integer
+          format: int64
+          description: 읽지 않은 알림 수
+    NotificationItemResponse:
+      type: object
+      description: 알림 항목
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 알림 ID
+        type:
+          type: string
+          description: 알림 유형
+          example: CHAT
+        title:
+          type: string
+          description: 제목
+        body:
+          type: string
+          description: 본문
+        deepLink:
+          type: string
+          description: 딥링크
+          example: /agit/018f3f6e-8e2a-7b3c-9d4e-5f6a7b8c9d0e/chat
+        resourceId:
+          type: string
+          description: 리소스 ID
+        agitUuid:
+          type: string
+          description: 아지트 UUID
+        read:
+          type: boolean
+          description: 읽음 여부
+        createdAt:
+          type: string
+          format: date-time
+          description: 생성 시각
+    NotificationReadAllResponse:
+      type: object
+      description: 모두 읽음 결과
+      properties:
+        updatedCount:
+          type: integer
+          format: int64
+          description: 읽음 처리된 알림 수
     SocialSignupCompleteRequest:
       type: object
       description: 소셜 가입 완료 요청
@@ -1312,6 +1464,14 @@ components:
           description: ACTIVE 약관별 동의 상태
           items:
             $ref: "#/components/schemas/UserTermsAgreementItemResponse"
+    NotificationUnreadCountResponse:
+      type: object
+      description: 읽지 않은 알림 수
+      properties:
+        unreadCount:
+          type: integer
+          format: int64
+          description: 읽지 않은 알림 수
     TermResponse:
       type: object
       description: 약관 항목
